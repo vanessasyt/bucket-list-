@@ -1,0 +1,164 @@
+[
+  {
+    "title": "Gym (back)",
+    "type": "activity",
+    "city": "Cambridge",
+    "cook": null
+  },
+  {
+    "title": "Padel",
+    "type": "activity",
+    "city": "Cambridge",
+    "cook": null
+  },
+  {
+    "title": "Driving range",
+    "type": "activity",
+    "city": "Cambridge",
+    "cook": null
+  },
+  {
+    "title": "Bouldering",
+    "type": "activity",
+    "city": "Cambridge",
+    "cook": null
+  },
+  {
+    "title": "Pub quiz",
+    "type": "activity",
+    "city": "Cambridge",
+    "cook": null
+  },
+  {
+    "title": "Karaoke",
+    "type": "activity",
+    "city": "Cambridge",
+    "cook": null
+  },
+  {
+    "title": "Painting",
+    "type": "activity",
+    "city": "Cambridge",
+    "cook": null
+  },
+  {
+    "title": "Rave or club",
+    "type": "activity",
+    "city": "Cambridge",
+    "cook": null
+  },
+  {
+    "title": "Raza night events",
+    "type": "activity",
+    "city": "Cambridge",
+    "cook": null
+  },
+  {
+    "title": "Movie picnic",
+    "type": "activity",
+    "city": "Cambridge",
+    "cook": null
+  },
+  {
+    "title": "Tennis",
+    "type": "activity",
+    "city": "Cambridge",
+    "cook": null
+  },
+  {
+    "title": "Punting",
+    "type": "activity",
+    "city": "Cambridge",
+    "cook": null
+  },
+  {
+    "title": "Dance class",
+    "type": "activity",
+    "city": "Cambridge",
+    "cook": null
+  },
+  {
+    "title": "Massage oil massage",
+    "type": "activity",
+    "city": "Cambridge",
+    "cook": null
+  },
+  {
+    "title": "Tudor cooks",
+    "type": "activity",
+    "city": "Cambridge",
+    "cook": null
+  },
+  {
+    "title": "Engineers House",
+    "type": "restaurant",
+    "city": "Cambridge",
+    "cook": null
+  },
+  {
+    "title": "Board game cafe",
+    "type": "restaurant",
+    "city": "Cambridge",
+    "cook": null
+  },
+  {
+    "title": "Vietnamese",
+    "type": "restaurant",
+    "city": "Cambridge",
+    "cook": null
+  },
+  {
+    "title": "Knoops",
+    "type": "restaurant",
+    "city": "Cambridge",
+    "cook": null
+  },
+  {
+    "title": "JWL noodles",
+    "type": "restaurant",
+    "city": "Cambridge",
+    "cook": null
+  },
+  {
+    "title": "Market House",
+    "type": "restaurant",
+    "city": "Cambridge",
+    "cook": null
+  },
+  {
+    "title": "Salmon fish cakes",
+    "type": "cooking",
+    "city": "Cambridge",
+    "cook": "tudor"
+  },
+  {
+    "title": "Steak with chewy potatoes",
+    "type": "cooking",
+    "city": "Cambridge",
+    "cook": "tudor"
+  },
+  {
+    "title": "Blueberry cheesecake",
+    "type": "cooking",
+    "city": "Cambridge",
+    "cook": "tudor"
+  },
+  {
+    "title": "Chorizo croquettes",
+    "type": "cooking",
+    "city": "Cambridge",
+    "cook": "vanessa"
+  },
+  {
+    "title": "Chicken and potatoes speciality",
+    "type": "cooking",
+    "city": "Cambridge",
+    "cook": "vanessa"
+  },
+  {
+    "title": "Moelleux au chocolat",
+    "type": "cooking",
+    "city": "Cambridge",
+    "cook": "vanessa"
+  }
+]

@@ -1,0 +1,136 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import { uploadPhoto } from "../actions";
+
+interface Slot {
+  id: string;
+  url: string | null; // null while uploading
+  error: string | null;
+  preview: string;
+}
+
+export default function PhotoUploader({
+  onChange,
+  compact = false,
+}: {
+  onChange: (urls: string[], uploading: boolean) => void;
+  compact?: boolean;
+}) {
+  const [slots, setSlots] = useState<Slot[]>([]);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const onChangeRef = useRef(onChange);
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
+
+  useEffect(() => {
+    onChangeRef.current(
+      slots.filter((s) => s.url).map((s) => s.url as string),
+      slots.some((s) => !s.url && !s.error)
+    );
+  }, [slots]);
+
+  async function upload(file: File) {
+    const id = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    setSlots((prev) => [
+      ...prev,
+      { id, url: null, error: null, preview: URL.createObjectURL(file) },
+    ]);
+
+    const fd = new FormData();
+    fd.set("file", file);
+    const result = await uploadPhoto(fd);
+
+    setSlots((prev) =>
+      prev.map((s) =>
+        s.id === id
+          ? {
+              ...s,
+              url: result.ok ? result.url! : null,
+              error: result.ok ? null : result.error || "Failed",
+            }
+          : s
+      )
+    );
+  }
+
+  // Pasting works on phones and desktop alike, which is the quickest way
+  // to get a photo in without going through the file picker.
+  useEffect(() => {
+    function onPaste(e: ClipboardEvent) {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+      for (const item of items) {
+        if (item.type.startsWith("image/")) {
+          const file = item.getAsFile();
+          if (file) upload(file);
+        }
+      }
+    }
+    window.addEventListener("paste", onPaste);
+    return () => window.removeEventListener("paste", onPaste);
+  }, []);
+
+  const box = compact ? "w-16 h-16" : "w-20 h-20";
+
+  return (
+    <div>
+      <div className="flex flex-wrap gap-2.5">
+        {slots.map((s) => (
+          <div key={s.id} className={`relative ${box} shrink-0`}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={s.url ?? s.preview}
+              alt=""
+              className={`w-full h-full object-cover rounded-sm border border-navy/25 ${
+                !s.url && !s.error ? "opacity-45" : ""
+              }`}
+            />
+            {!s.url && !s.error && (
+              <span className="absolute inset-0 flex items-center justify-center font-mono text-[8px] uppercase tracking-widest text-navy">
+                …
+              </span>
+            )}
+            {s.error && (
+              <span className="absolute inset-0 flex items-center justify-center bg-vermilion/15 rounded-sm font-mono text-[7px] text-vermilion text-center px-1 leading-tight">
+                {s.error}
+              </span>
+            )}
+            <button
+              type="button"
+              onClick={() => setSlots((prev) => prev.filter((x) => x.id !== s.id))}
+              aria-label="Remove photo"
+              className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-navy text-page text-[10px] leading-none flex items-center justify-center"
+            >
+              ×
+            </button>
+          </div>
+        ))}
+
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          className={`${box} shrink-0 border border-dashed border-navy/35 rounded-sm flex flex-col items-center justify-center text-navy-soft hover:text-navy hover:border-navy/60 transition-colors`}
+        >
+          <span className="text-lg leading-none">+</span>
+          <span className="font-mono text-[8px] tracking-[0.14em] uppercase mt-0.5">Photo</span>
+        </button>
+      </div>
+
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        multiple
+        className="hidden"
+        onChange={(e) => {
+          const files = e.target.files;
+          if (files) Array.from(files).forEach(upload);
+          e.target.value = "";
+        }}
+      />
+    </div>
+  );
+}

@@ -1,0 +1,187 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body {
+  background-color: #efe7d2;
+  color: #14213d;
+}
+
+/* Guilloche-ish security print: the fine repeating pattern printed on
+   passport pages to make forgery hard. Built from layered gradients so
+   there's no image asset to load. */
+.security-print {
+  background-image:
+    repeating-radial-gradient(
+      circle at 50% 50%,
+      rgba(20, 33, 61, 0.045) 0px,
+      rgba(20, 33, 61, 0.045) 1px,
+      transparent 1px,
+      transparent 9px
+    ),
+    repeating-linear-gradient(
+      45deg,
+      rgba(184, 145, 47, 0.05) 0px,
+      rgba(184, 145, 47, 0.05) 1px,
+      transparent 1px,
+      transparent 7px
+    );
+  background-size:
+    36px 36px,
+    22px 22px;
+}
+
+/* The machine-readable strip along the bottom of a passport's photo page */
+.mrz {
+  font-family: var(--font-plex-mono), monospace;
+  letter-spacing: 0.18em;
+  word-spacing: 0.1em;
+}
+
+.field-label {
+  font-family: var(--font-plex-mono), monospace;
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #3a4a6b;
+}
+
+.input {
+  width: 100%;
+  background: #f7f2e5;
+  border: 1px solid rgba(20, 33, 61, 0.25);
+  border-radius: 2px;
+  padding: 0.5rem 0.7rem;
+  font-family: var(--font-newsreader), serif;
+  color: #14213d;
+}
+.input:focus {
+  outline: 2px solid #b8912f;
+  outline-offset: 1px;
+}
+
+.btn {
+  font-family: var(--font-plex-mono), monospace;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  padding: 0.6rem 1.2rem;
+  border-radius: 2px;
+  background: #14213d;
+  color: #f7f2e5;
+  transition: opacity 0.15s ease;
+}
+.btn:hover {
+  opacity: 0.88;
+}
+.btn:disabled {
+  opacity: 0.45;
+}
+
+.btn-ghost {
+  font-family: var(--font-plex-mono), monospace;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  padding: 0.5rem 1rem;
+  border-radius: 2px;
+  border: 1px solid rgba(20, 33, 61, 0.3);
+  color: #14213d;
+  background: rgba(247, 242, 229, 0.7);
+}
+.btn-ghost:hover {
+  background: #f7f2e5;
+}
+
+/* --- The stamp: this app's signature element --- */
+.stamp {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  border-width: 2px;
+  border-style: solid;
+  font-family: var(--font-plex-mono), monospace;
+  text-transform: uppercase;
+  /* Slightly uneven ink, the way a real rubber stamp prints */
+  opacity: 0.92;
+  mix-blend-mode: multiply;
+}
+
+.stamp-activity {
+  border-radius: 9999px;
+}
+.stamp-restaurant {
+  border-radius: 2px;
+}
+.stamp-cooking {
+  border-radius: 2px;
+  border-style: double;
+  border-width: 4px;
+}
+
+@keyframes stamp-in {
+  0% {
+    opacity: 0;
+    transform: scale(1.6) rotate(var(--stamp-rot, 0deg));
+  }
+  60% {
+    opacity: 0.95;
+    transform: scale(0.94) rotate(var(--stamp-rot, 0deg));
+  }
+  100% {
+    opacity: 0.92;
+    transform: scale(1) rotate(var(--stamp-rot, 0deg));
+  }
+}
+.animate-stamp {
+  animation: stamp-in 0.42s cubic-bezier(0.2, 0.8, 0.3, 1) both;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-rise {
+  animation: rise 0.35s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-stamp,
+  .animate-rise {
+    animation: none;
+  }
+}
+
+/* --- Leaflet --- */
+.leaflet-container {
+  background: #dcd2b8;
+  font-family: var(--font-newsreader), serif;
+}
+/* Desaturate the base map so the coloured stamps are what the eye catches */
+.leaflet-tile-pane {
+  filter: saturate(0.35) contrast(0.92) brightness(1.04);
+}
+.leaflet-container a.leaflet-popup-close-button {
+  color: #14213d;
+}
+.leaflet-popup-content-wrapper {
+  border-radius: 3px;
+  background: #f7f2e5;
+  color: #14213d;
+}
+.leaflet-popup-tip {
+  background: #f7f2e5;
+}
+.stamp-marker {
+  background: transparent !important;
+  border: none !important;
+}
