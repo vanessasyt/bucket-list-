@@ -84,8 +84,9 @@ export default function MapView({ entries }: { entries: Entry[] }) {
     let cancelled = false;
 
     (async () => {
-      const L = (await import("leaflet")).default;
-      if (cancelled || !containerRef.current || mapRef.current) return;
+      const leafletModule = await import("leaflet");
+      const L = leafletModule.default ?? leafletModule;
+      if (cancelled || !containerRef.current || mapRef.current || !L?.map) return;
 
       LRef.current = L;
       const map = L.map(containerRef.current, {
