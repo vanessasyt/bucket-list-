@@ -1,9 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 import { login, type ActionState } from "../actions";
-import { PEOPLE, PERSON_LABELS, type Person } from "@/lib/types";
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -16,44 +14,18 @@ function SubmitButton() {
 
 export default function LoginPage() {
   const [state, formAction] = useFormState<ActionState, FormData>(login, {});
-  const [person, setPerson] = useState<Person>("vanessa");
 
   return (
     <main className="min-h-screen security-print flex items-center justify-center px-5 py-10">
       <div className="w-full max-w-sm animate-rise">
         <div className="border-2 border-navy rounded-sm bg-page-light overflow-hidden">
           <div className="bg-navy px-5 py-4">
-            <p className="font-mono text-[9px] tracking-[0.3em] text-page/70 uppercase">
-              Joint record of travel
-            </p>
             <h1 className="font-display text-4xl font-black text-page leading-none mt-1 tracking-wide">
-              TUDOR &amp; VANESSA
+              BUCKET LIST
             </h1>
           </div>
 
           <form action={formAction} className="px-5 py-6 space-y-5">
-            <input type="hidden" name="person" value={person} />
-
-            <div>
-              <p className="field-label mb-2">Bearer</p>
-              <div className="grid grid-cols-2 gap-2">
-                {PEOPLE.map((p) => (
-                  <button
-                    key={p}
-                    type="button"
-                    onClick={() => setPerson(p)}
-                    className={`font-mono text-[11px] tracking-[0.16em] uppercase py-2.5 rounded-sm border transition-colors ${
-                      person === p
-                        ? "bg-navy text-page border-navy"
-                        : "border-navy/30 text-navy hover:bg-page"
-                    }`}
-                  >
-                    {PERSON_LABELS[p]}
-                  </button>
-                ))}
-              </div>
-            </div>
-
             <label className="block">
               <span className="field-label">Password</span>
               <input type="password" name="password" className="input mt-1.5" autoFocus />

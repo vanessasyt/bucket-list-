@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { put } from "@vercel/blob";
-import { checkPassword, clearSession, currentPerson, setSession } from "@/lib/auth";
+import { clearSession, currentPerson, personForPassword, setSession } from "@/lib/auth";
 import {
   addBucketItem,
   createEntry,
@@ -20,13 +20,10 @@ export interface ActionState {
 /* ---------------- auth ---------------- */
 
 export async function login(_prev: ActionState, formData: FormData): Promise<ActionState> {
-  const person = String(formData.get("person") || "") as Person;
   const password = String(formData.get("password") || "");
 
-  if (person !== "vanessa" && person !== "tudor") {
-    return { error: "Pick who you are." };
-  }
-  if (!checkPassword(person, password)) {
+  const person = personForPassword(password);
+  if (!person) {
     return { error: "That password doesn't match." };
   }
   setSession(person);

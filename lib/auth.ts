@@ -24,12 +24,23 @@ function safeEqual(a: string, b: string): boolean {
 }
 
 export function passwordFor(person: Person): string {
-  if (person === "vanessa") return process.env.VANESSA_PASSWORD || "vanessa";
-  return process.env.TUDOR_PASSWORD || "tudor";
+  if (person === "vanessa") return process.env.VANESSA_PASSWORD || "vanessaisthebest";
+  return process.env.TUDOR_PASSWORD || "tudoristhebest";
 }
 
 export function checkPassword(person: Person, password: string): boolean {
   return safeEqual(password, passwordFor(person));
+}
+
+// There's no "who are you?" picker on the login screen — the password itself
+// says which of the two people you are. Both are always checked so a wrong
+// password takes the same path regardless of whose it nearly was.
+export function personForPassword(password: string): Person | null {
+  const isVanessa = checkPassword("vanessa", password);
+  const isTudor = checkPassword("tudor", password);
+  if (isVanessa) return "vanessa";
+  if (isTudor) return "tudor";
+  return null;
 }
 
 export function setSession(person: Person) {
