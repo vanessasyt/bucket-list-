@@ -1,4 +1,3 @@
-import { redirect } from "next/navigation";
 import { currentPerson } from "@/lib/auth";
 import { getEntries } from "@/lib/db";
 import MapView from "./components/MapView";
@@ -30,6 +29,24 @@ export default async function MapPage() {
           <p className="font-mono text-[9px] tracking-[0.14em] text-navy-soft uppercase mt-1">
             {counts.cities} {counts.cities === 1 ? "city" : "cities"}
           </p>
+        </div>
+
+        <div className="absolute top-4 left-4 z-[500] bg-page-light/90 border border-navy/25 rounded-sm px-4 py-3 max-w-xs">
+          <p className="font-display text-sm font-black text-navy uppercase tracking-[0.25em]">
+            Map view
+          </p>
+          <p className="font-body text-sm text-navy-soft mt-1">
+            Click London or Cambridge to zoom in. Stamps show the places we’ve been.
+          </p>
+        </div>
+
+        <div className="absolute bottom-4 right-4 z-[500] flex items-center gap-3">
+          <a
+            href="/add"
+            className="btn bg-vermilion hover:bg-[#f36c83] text-page"
+          >
+            Add entry
+          </a>
         </div>
       </div>
     </div>
