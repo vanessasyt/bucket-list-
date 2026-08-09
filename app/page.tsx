@@ -8,8 +8,6 @@ export const dynamic = "force-dynamic";
 
 export default async function MapPage() {
   const person = currentPerson();
-  if (!person) redirect("/login");
-
   const entries = await getEntries();
 
   const counts = {

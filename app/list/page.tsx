@@ -11,8 +11,6 @@ export const dynamic = "force-dynamic";
 
 export default async function ListPage() {
   const person = currentPerson();
-  if (!person) redirect("/login");
-
   const [items, entries] = await Promise.all([getBucketItems(), getEntries()]);
   const entryById = new Map(entries.map((e) => [e.id, e]));
 

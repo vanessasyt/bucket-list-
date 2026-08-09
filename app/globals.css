@@ -4,8 +4,8 @@
 
 html,
 body {
-  background-color: #efe7d2;
-  color: #14213d;
+  background-color: #071240;
+  color: #f8f7ff;
 }
 
 /* Guilloche-ish security print: the fine repeating pattern printed on
@@ -15,15 +15,15 @@ body {
   background-image:
     repeating-radial-gradient(
       circle at 50% 50%,
-      rgba(20, 33, 61, 0.045) 0px,
-      rgba(20, 33, 61, 0.045) 1px,
+      rgba(245, 158, 11, 0.14) 0px,
+      rgba(245, 158, 11, 0.14) 1px,
       transparent 1px,
       transparent 9px
     ),
     repeating-linear-gradient(
       45deg,
-      rgba(184, 145, 47, 0.05) 0px,
-      rgba(184, 145, 47, 0.05) 1px,
+      rgba(168, 85, 247, 0.08) 0px,
+      rgba(168, 85, 247, 0.08) 1px,
       transparent 1px,
       transparent 7px
     );
@@ -37,6 +37,7 @@ body {
   font-family: var(--font-plex-mono), monospace;
   letter-spacing: 0.18em;
   word-spacing: 0.1em;
+  color: rgba(248, 247, 255, 0.65);
 }
 
 .field-label {
@@ -44,20 +45,20 @@ body {
   font-size: 9px;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: #3a4a6b;
+  color: #f59e0b;
 }
 
 .input {
   width: 100%;
-  background: #f7f2e5;
-  border: 1px solid rgba(20, 33, 61, 0.25);
-  border-radius: 2px;
-  padding: 0.5rem 0.7rem;
+  background: #12224f;
+  border: 1px solid rgba(79, 97, 167, 0.6);
+  border-radius: 4px;
+  padding: 0.65rem 0.8rem;
   font-family: var(--font-newsreader), serif;
-  color: #14213d;
+  color: #f8f7ff;
 }
 .input:focus {
-  outline: 2px solid #b8912f;
+  outline: 2px solid #f59e0b;
   outline-offset: 1px;
 }
 
@@ -67,16 +68,17 @@ body {
   letter-spacing: 0.16em;
   text-transform: uppercase;
   padding: 0.6rem 1.2rem;
-  border-radius: 2px;
-  background: #14213d;
-  color: #f7f2e5;
-  transition: opacity 0.15s ease;
+  border-radius: 4px;
+  background: #fb7185;
+  color: #071240;
+  transition: transform 0.15s ease, opacity 0.15s ease;
 }
 .btn:hover {
-  opacity: 0.88;
+  transform: translateY(-1px);
+  opacity: 0.96;
 }
 .btn:disabled {
-  opacity: 0.45;
+  opacity: 0.55;
 }
 
 .btn-ghost {
@@ -85,13 +87,13 @@ body {
   letter-spacing: 0.16em;
   text-transform: uppercase;
   padding: 0.5rem 1rem;
-  border-radius: 2px;
-  border: 1px solid rgba(20, 33, 61, 0.3);
-  color: #14213d;
-  background: rgba(247, 242, 229, 0.7);
+  border-radius: 4px;
+  border: 1px solid rgba(245, 158, 11, 0.5);
+  color: #f8f7ff;
+  background: rgba(245, 158, 11, 0.12);
 }
 .btn-ghost:hover {
-  background: #f7f2e5;
+  background: rgba(245, 158, 11, 0.2);
 }
 
 /* --- The stamp: this app's signature element --- */

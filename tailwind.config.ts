@@ -5,19 +5,16 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Passport cover navy, used for chrome and heavy type
-        navy: "#14213D",
-        "navy-soft": "#3A4A6B",
-        // Passport page stock — yellower than typical off-white
-        page: "#EFE7D2",
-        "page-deep": "#E4D9BE",
-        "page-light": "#F7F2E5",
-        // Foil
-        gold: "#B8912F",
-        // The three stamp inks, one per entry type
-        violet: "#6B4E9E",
-        teal: "#24726A",
-        vermilion: "#B93B2B",
+        // A richer blue base with brighter accents for a more playful passport.
+        navy: "#071240",
+        "navy-soft": "#4B6FB5",
+        page: "#0D172F",
+        "page-deep": "#121E3B",
+        "page-light": "#1B2B55",
+        gold: "#F59E0B",
+        violet: "#A855F7",
+        teal: "#14B8A6",
+        vermilion: "#FB7185",
       },
       fontFamily: {
         display: ["var(--font-big-shoulders)", "sans-serif"],

@@ -6,7 +6,7 @@ export default function Nav({
   person,
   active,
 }: {
-  person: Person;
+  person: Person | null;
   active: "map" | "list" | "add";
 }) {
   const link = (href: string, key: string, label: string) => (
@@ -34,14 +34,23 @@ export default function Nav({
         {link("/add", "add", "Log")}
       </nav>
 
-      <form action={logout} className="hidden sm:block">
-        <button
-          type="submit"
-          className="font-mono text-[10px] tracking-[0.14em] uppercase text-page/50 hover:text-page/90"
+      {person ? (
+        <form action={logout} className="hidden sm:block">
+          <button
+            type="submit"
+            className="font-mono text-[10px] tracking-[0.14em] uppercase text-page/50 hover:text-page/90"
+          >
+            {PERSON_LABELS[person]} ↪
+          </button>
+        </form>
+      ) : (
+        <Link
+          href="/login"
+          className="hidden sm:inline-block font-mono text-[10px] tracking-[0.14em] uppercase text-page/50 hover:text-page/90"
         >
-          {PERSON_LABELS[person]} ↪
-        </button>
-      </form>
+          Login ↪
+        </Link>
+      )}
     </header>
   );
 }

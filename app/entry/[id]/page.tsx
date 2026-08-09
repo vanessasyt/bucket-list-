@@ -29,7 +29,6 @@ function longDate(dateKey: string) {
 
 export default async function EntryPage({ params }: { params: { id: string } }) {
   const person = currentPerson();
-  if (!person) redirect("/login");
 
   const id = Number(params.id);
   if (!Number.isFinite(id)) notFound();
