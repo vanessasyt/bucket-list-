@@ -58,6 +58,17 @@ function ensureSchema() {
       // broke the map once already.
       await p.query(`ALTER TABLE entries ADD COLUMN IF NOT EXISTS cuisine TEXT;`);
 
+      // Photos live in the database rather than in blob storage, so the app
+      // needs nothing beyond DATABASE_URL to work.
+      await p.query(`
+        CREATE TABLE IF NOT EXISTS photos (
+          id SERIAL PRIMARY KEY,
+          data BYTEA NOT NULL,
+          mime TEXT NOT NULL,
+          created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+        );
+      `);
+
       await p.query(`
         CREATE TABLE IF NOT EXISTS bucket_items (
           id SERIAL PRIMARY KEY,
@@ -169,6 +180,22 @@ export async function updateBucketItem(
 export async function deleteBucketItem(id: number): Promise<void> {
   await ensureSchema();
   await getPool().query("DELETE FROM bucket_items WHERE id = $1;", [id]);
+}
+
+export async function savePhoto(data: Buffer, mime: string): Promise<number> {
+  await ensureSchema();
+  const { rows } = await getPool().query(
+    "INSERT INTO photos (data, mime) VALUES ($1, $2) RETURNING id;",
+    [data, mime]
+  );
+  return rows[0].id as number;
+}
+
+export async function getPhoto(id: number): Promise<{ data: Buffer; mime: string } | null> {
+  await ensureSchema();
+  const { rows } = await getPool().query("SELECT data, mime FROM photos WHERE id = $1;", [id]);
+  if (!rows.length) return null;
+  return { data: rows[0].data as Buffer, mime: rows[0].mime as string };
 }
 
 export interface NewEntry {

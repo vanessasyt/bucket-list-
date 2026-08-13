@@ -3,6 +3,40 @@
 import { useEffect, useRef, useState } from "react";
 import { uploadPhoto } from "../actions";
 
+// Phone photos are several megabytes; server actions reject bodies far
+// smaller than that, and the database shouldn't hold originals anyway. So
+// the browser resizes before anything is sent.
+const MAX_EDGE = 1600;
+const JPEG_QUALITY = 0.85;
+
+async function shrink(file: File): Promise<Blob> {
+  try {
+    const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
+    const scale = Math.min(1, MAX_EDGE / Math.max(bitmap.width, bitmap.height));
+    const w = Math.round(bitmap.width * scale);
+    const h = Math.round(bitmap.height * scale);
+
+    const canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return file;
+    ctx.drawImage(bitmap, 0, 0, w, h);
+    bitmap.close();
+
+    const blob = await new Promise<Blob | null>((resolve) =>
+      canvas.toBlob(resolve, "image/jpeg", JPEG_QUALITY)
+    );
+    // Keep whichever is smaller; a small PNG can beat its JPEG version.
+    if (!blob) return file;
+    return blob.size < file.size ? blob : file;
+  } catch {
+    // Formats the browser can't decode (some HEIC) fall through untouched
+    // and are caught by the size check on the server.
+    return file;
+  }
+}
+
 interface Slot {
   id: string;
   url: string | null; // null while uploading
@@ -50,8 +84,9 @@ export default function PhotoUploader({
       { id, url: null, error: null, preview: URL.createObjectURL(file) },
     ]);
 
+    const shrunk = await shrink(file);
     const fd = new FormData();
-    fd.set("file", file);
+    fd.set("file", shrunk, file.name.replace(/\.[^.]+$/, "") + ".jpg");
     const result = await uploadPhoto(fd);
 
     setSlots((prev) =>

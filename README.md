@@ -49,9 +49,12 @@ npm install
    Settings → Environment Variables, with Production ticked. Some Postgres
    integrations name it something else (e.g. `STORAGE_2_DATABASE_URL`) — if
    so, copy its value into a new variable named `DATABASE_URL`.
-3. **Storage tab → add a Blob store.** This is where photos go. Vercel adds
-   `BLOB_READ_WRITE_TOKEN` automatically.
-4. Deploy. Both tables are created automatically on first use.
+3. Deploy. The tables are created automatically on first use.
+
+Photos are stored in the database and served from `/api/photo/[id]`, so
+there is no blob store or image host to set up. The browser shrinks each
+photo to 1600px on its longest edge before uploading, which keeps a
+typical photo in the low hundreds of kilobytes.
 
 ### Loading the starting wishlist
 

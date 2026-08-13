@@ -2,7 +2,6 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { put } from "@vercel/blob";
 import {
   addBucketItem,
   createEntry,
@@ -11,6 +10,7 @@ import {
   updateBucketItem,
   saveReview,
   addPhotos,
+  savePhoto,
   updateEntry,
 } from "@/lib/db";
 import { hasCuisine, isEntryType, isPerson, type EntryType, type Person } from "@/lib/types";
@@ -102,7 +102,10 @@ function ratingFrom(formData: FormData): number | null {
 
 /* ---------------- photos ---------------- */
 
-const MAX_PHOTO_BYTES = 15 * 1024 * 1024;
+// Photos arrive already shrunk by the browser, so this is a ceiling rather
+// than an expected size. Server actions have their own body limit too, set
+// in next.config.mjs.
+const MAX_PHOTO_BYTES = 6 * 1024 * 1024;
 
 export interface UploadResult {
   ok: boolean;
@@ -114,17 +117,15 @@ export async function uploadPhoto(formData: FormData): Promise<UploadResult> {
   const file = formData.get("file");
   if (!(file instanceof File)) return { ok: false, error: "No file received." };
   if (!file.type.startsWith("image/")) return { ok: false, error: "Images only." };
-  if (file.size > MAX_PHOTO_BYTES) return { ok: false, error: "Too large (max 15MB)." };
+  if (file.size > MAX_PHOTO_BYTES) {
+    return { ok: false, error: "That photo is too large even after shrinking." };
+  }
 
   try {
-    const blob = await put(`places/${Date.now()}-${file.name || "photo"}`, file, {
-      access: "public",
-      addRandomSuffix: true,
-    });
-    return { ok: true, url: blob.url };
+    const bytes = Buffer.from(await file.arrayBuffer());
+    const id = await savePhoto(bytes, file.type);
+    return { ok: true, url: `/api/photo/${id}` };
   } catch (err) {
-    // The real message matters here: a missing blob token and a rejected
-    // file fail in completely different ways.
     const message = err instanceof Error ? err.message : String(err);
     return { ok: false, error: message.slice(0, 140) };
   }
