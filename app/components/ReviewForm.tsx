@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 import { saveReviewAction, type ActionState } from "../actions";
 import { PERSON_LABELS, type Person } from "@/lib/types";
+import { rememberWho } from "./WhoPicker";
 
 function SaveButton({ label }: { label: string }) {
   const { pending } = useFormStatus();
@@ -14,6 +15,9 @@ function SaveButton({ label }: { label: string }) {
   );
 }
 
+// One half of a place's write-up. Which half is decided by `person`, not by
+// who is logged in — there is no logging in. Opening the form is itself the
+// claim that you are that person.
 export default function ReviewForm({
   entryId,
   person,
@@ -27,15 +31,18 @@ export default function ReviewForm({
 }) {
   const [state, formAction] = useFormState<ActionState, FormData>(saveReviewAction, {});
   const hasExisting = existingReview !== null || existingRating !== null;
-  const [open, setOpen] = useState(!hasExisting);
+  const [open, setOpen] = useState(false);
 
   if (!open) {
     return (
       <button
-        onClick={() => setOpen(true)}
-        className="font-mono text-[10px] tracking-[0.14em] uppercase text-navy-soft hover:text-navy border-b border-dashed border-navy/30"
+        onClick={() => {
+          rememberWho(person);
+          setOpen(true);
+        }}
+        className="font-mono text-[10px] tracking-[0.14em] uppercase text-muted hover:text-cream border-b border-dashed border-line self-start"
       >
-        Edit mine
+        {hasExisting ? "Edit" : `Write ${PERSON_LABELS[person]}’s`}
       </button>
     );
   }
@@ -43,6 +50,7 @@ export default function ReviewForm({
   return (
     <form action={formAction} className="mt-1">
       <input type="hidden" name="entryId" value={entryId} />
+      <input type="hidden" name="author" value={person} />
 
       <label className="block">
         <span className="field-label">Out of 10</span>
@@ -68,19 +76,17 @@ export default function ReviewForm({
         />
       </label>
 
-      {state.error && <p className="font-body text-sm text-vermilion mt-2">{state.error}</p>}
+      {state.error && <p className="font-body text-sm text-accent-hot mt-2">{state.error}</p>}
 
       <div className="flex items-center gap-3">
-        <SaveButton label={hasExisting ? "Update" : "Add mine"} />
-        {hasExisting && (
-          <button
-            type="button"
-            onClick={() => setOpen(false)}
-            className="font-mono text-[10px] tracking-[0.14em] uppercase text-navy-soft hover:text-navy mt-3"
-          >
-            Cancel
-          </button>
-        )}
+        <SaveButton label={hasExisting ? "Update" : "Save"} />
+        <button
+          type="button"
+          onClick={() => setOpen(false)}
+          className="font-mono text-[10px] tracking-[0.14em] uppercase text-muted hover:text-cream mt-3"
+        >
+          Cancel
+        </button>
       </div>
     </form>
   );

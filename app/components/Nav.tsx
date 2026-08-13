@@ -1,56 +1,44 @@
 import Link from "next/link";
-import { logout } from "../actions";
-import { PERSON_LABELS, type Person } from "@/lib/types";
 
+// The bar across the top of every page. On the map it floats over the tiles,
+// so it keeps its own translucent background rather than sitting on the page.
 export default function Nav({
-  person,
   active,
+  floating = false,
 }: {
-  person: Person | null;
   active: "map" | "list" | "add";
+  floating?: boolean;
 }) {
-  const link = (href: string, key: string, label: string) => (
-    <Link
-      href={href}
-      className={`font-mono text-[11px] tracking-[0.16em] uppercase px-3 py-1.5 rounded-sm transition-colors ${
-        active === key ? "bg-page text-navy" : "text-page/70 hover:text-page"
+  return (
+    <header
+      className={`flex items-center justify-between gap-3 px-4 sm:px-6 py-3 ${
+        floating
+          ? "absolute inset-x-0 top-0 z-[600] bg-gradient-to-b from-ink via-ink/85 to-transparent pb-8"
+          : "bg-ink border-b border-line"
       }`}
     >
-      {label}
-    </Link>
-  );
-
-  return (
-    <header className="bg-navy px-4 sm:px-5 py-2.5 flex items-center justify-between gap-3 shrink-0">
-      <Link href="/" className="min-w-0">
-        <span className="font-display text-xl sm:text-2xl font-black text-page tracking-wide whitespace-nowrap">
-          TUDOR &amp; VANESSA
+      <Link href="/" className="flex items-center gap-2.5 min-w-0 group">
+        <span className="w-6 h-6 rounded-sm bg-accent shrink-0 flex items-center justify-center text-ink text-[13px] leading-none">
+          ◆
+        </span>
+        <span className="font-display text-lg sm:text-xl text-cream whitespace-nowrap group-hover:text-accent-hot transition-colors">
+          Food Diary
         </span>
       </Link>
 
-      <nav className="flex items-center gap-1">
-        {link("/", "map", "Map")}
-        {link("/list", "list", "List")}
-        {link("/add", "add", "Log")}
-      </nav>
-
-      {person ? (
-        <form action={logout} className="hidden sm:block">
-          <button
-            type="submit"
-            className="font-mono text-[10px] tracking-[0.14em] uppercase text-page/50 hover:text-page/90"
-          >
-            {PERSON_LABELS[person]} ↪
-          </button>
-        </form>
-      ) : (
+      <nav className="flex items-center gap-2 sm:gap-4">
         <Link
-          href="/login"
-          className="hidden sm:inline-block font-mono text-[10px] tracking-[0.14em] uppercase text-page/50 hover:text-page/90"
+          href="/list"
+          className={`font-mono text-[10px] sm:text-[11px] tracking-[0.16em] uppercase transition-colors ${
+            active === "list" ? "text-accent-hot" : "text-muted hover:text-cream"
+          }`}
         >
-          Login ↪
+          Want to try
         </Link>
-      )}
+        <Link href="/add" className="btn whitespace-nowrap">
+          + Add entry
+        </Link>
+      </nav>
     </header>
   );
 }

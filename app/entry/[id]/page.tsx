@@ -1,17 +1,17 @@
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
-import { currentPerson } from "@/lib/auth";
+import { notFound } from "next/navigation";
 import { getEntry } from "@/lib/db";
 import {
   PEOPLE,
   PERSON_LABELS,
-  TYPE_INK,
-  TYPE_LABELS,
+  TYPE_LABELS_ONE,
+  TYPE_STYLE,
+  avgRating,
+  formatRating,
   ratingOf,
   reviewOf,
 } from "@/lib/types";
 import Nav from "@/app/components/Nav";
-import Stamp from "@/app/components/Stamp";
 import ReviewForm from "@/app/components/ReviewForm";
 import AddPhotos from "@/app/components/AddPhotos";
 
@@ -28,71 +28,82 @@ function longDate(dateKey: string) {
 }
 
 export default async function EntryPage({ params }: { params: { id: string } }) {
-  const person = currentPerson();
-
   const id = Number(params.id);
   if (!Number.isFinite(id)) notFound();
 
   const entry = await getEntry(id);
   if (!entry) notFound();
 
-  const ink = TYPE_INK[entry.type];
+  const style = TYPE_STYLE[entry.type];
+  const cover = entry.photos[0];
+  const avg = avgRating(entry);
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Nav person={person} active="map" />
+      <Nav active="map" />
 
-      <main className="flex-1 security-print">
-        <div className="mx-auto max-w-3xl px-4 sm:px-5 py-6">
-          <Link
-            href="/"
-            className="font-mono text-[10px] tracking-[0.16em] uppercase text-navy-soft hover:text-navy"
-          >
-            ← Map
-          </Link>
+      <main className="flex-1">
+        {/* Cover band */}
+        {cover ? (
+          <div className="relative h-48 sm:h-64 w-full overflow-hidden">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={cover} alt="" className="w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/40 to-transparent" />
+          </div>
+        ) : (
+          <div className="h-20" style={{ backgroundColor: `${style.hex}1A` }} />
+        )}
 
-          <div className="mt-5 flex flex-col sm:flex-row sm:items-start gap-5 animate-rise">
-            <div className="shrink-0 self-center sm:self-start">
-              <Stamp
-                title={entry.title}
-                type={entry.type}
-                city={entry.city}
-                date={entry.date}
-                size="lg"
-                seed={`${entry.title}${entry.date}`}
-                animate
-              />
-            </div>
+        <div className="mx-auto max-w-3xl px-4 sm:px-5 pb-12 -mt-10 relative">
+          <div className="flex items-start justify-between gap-4 animate-rise">
+            <div className="min-w-0">
+              <Link
+                href="/"
+                className="font-mono text-[10px] tracking-[0.16em] uppercase text-muted hover:text-cream"
+              >
+                ← Map
+              </Link>
 
-            <div className="min-w-0 flex-1">
-              <p className={`field-label ${ink.text}`}>
-                {TYPE_LABELS[entry.type]}
+              <p className="field-label mt-3" style={{ color: style.hex }}>
+                {TYPE_LABELS_ONE[entry.type]}
                 {entry.cook && ` · ${PERSON_LABELS[entry.cook]} cooked`}
               </p>
-              <h1 className="font-display text-4xl sm:text-5xl font-black text-navy leading-none tracking-wide mt-1">
-                {entry.title.toUpperCase()}
+              <h1 className="font-display text-4xl sm:text-5xl text-cream leading-tight mt-1">
+                {entry.title}
               </h1>
-              <p className="font-body text-navy-soft mt-2">
+              <p className="font-body text-muted mt-1.5">
                 {longDate(entry.date)}
                 {entry.placeName ? ` · ${entry.placeName}` : ""}
                 {entry.city ? `, ${entry.city}` : ""}
               </p>
-              <p className="font-mono text-[10px] tracking-[0.12em] text-navy-soft/70 mt-1">
-                {entry.lat.toFixed(4)}, {entry.lng.toFixed(4)}
-              </p>
+            </div>
+
+            <div className="shrink-0 flex flex-col items-end gap-3">
+              <Link href={`/entry/${entry.id}/edit`} className="btn-ghost whitespace-nowrap">
+                Edit entry
+              </Link>
+              {avg !== null && (
+                <div className="text-right">
+                  <p className="field-label">Between us</p>
+                  <p className="font-display text-3xl text-cream leading-none mt-0.5">
+                    {formatRating(avg)}
+                    <span className="text-muted text-base">/10</span>
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
-          {entry.photos.length > 0 && (
-            <div className="flex gap-3 overflow-x-auto mt-6 pb-2 -mx-1 px-1 snap-x">
-              {entry.photos.map((url, i) => (
-                <div
+          {entry.photos.length > 1 && (
+            <div className="flex gap-2.5 overflow-x-auto no-scrollbar mt-7 pb-1">
+              {entry.photos.slice(1).map((url, i) => (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
                   key={url + i}
-                  className="shrink-0 w-44 sm:w-52 snap-center border border-navy/25 bg-page-light p-1.5 rounded-sm"
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={url} alt="" className="w-full aspect-square object-cover rounded-sm" />
-                </div>
+                  src={url}
+                  alt=""
+                  className="shrink-0 w-36 h-36 object-cover rounded-sm border border-line"
+                />
               ))}
             </div>
           )}
@@ -101,52 +112,41 @@ export default async function EntryPage({ params }: { params: { id: string } }) 
             <AddPhotos entryId={entry.id} />
           </div>
 
-          <div className="grid md:grid-cols-2 gap-4 mt-7">
+          <div className="grid md:grid-cols-2 gap-4 mt-8">
             {PEOPLE.map((p) => {
               const rating = ratingOf(entry, p);
               const review = reviewOf(entry, p);
-              const isMe = p === person;
-              const hasContent = review !== null || rating !== null;
 
               return (
-                <section
-                  key={p}
-                  className="border border-navy/25 rounded-sm bg-page-light/70 p-4 flex flex-col"
-                >
+                <section key={p} className="panel p-4 flex flex-col">
                   <div className="flex items-baseline justify-between gap-2">
-                    <h2 className="font-display text-2xl font-black text-navy tracking-wide">
-                      {PERSON_LABELS[p].toUpperCase()}
-                    </h2>
+                    <h2 className="font-display text-2xl text-cream">{PERSON_LABELS[p]}</h2>
                     {rating !== null && (
-                      <span className={`font-mono text-lg font-semibold ${ink.text}`}>
-                        {rating}
-                        <span className="text-navy-soft text-xs">/10</span>
+                      <span className="font-mono text-lg font-semibold" style={{ color: style.hex }}>
+                        {formatRating(rating)}
+                        <span className="text-muted text-xs">/10</span>
                       </span>
                     )}
                   </div>
 
-                  <div className="h-px bg-navy/15 my-3" />
+                  <div className="h-px bg-line my-3" />
 
-                  {review && (
-                    <p className="font-body text-[15px] leading-relaxed text-navy whitespace-pre-wrap mb-3">
+                  {review ? (
+                    <p className="font-body text-[15px] leading-relaxed text-cream whitespace-pre-wrap mb-3">
                       {review}
+                    </p>
+                  ) : (
+                    <p className="font-body text-sm text-muted italic mb-3">
+                      Nothing written yet.
                     </p>
                   )}
 
-                  {isMe ? (
-                    <ReviewForm
-                      entryId={entry.id}
-                      person={p}
-                      existingRating={rating}
-                      existingReview={review}
-                    />
-                  ) : (
-                    !hasContent && (
-                      <p className="font-body text-sm text-navy-soft italic">
-                        {PERSON_LABELS[p]} hasn&rsquo;t written theirs yet.
-                      </p>
-                    )
-                  )}
+                  <ReviewForm
+                    entryId={entry.id}
+                    person={p}
+                    existingRating={rating}
+                    existingReview={review}
+                  />
                 </section>
               );
             })}

@@ -1,4 +1,4 @@
-// Loads the starting bucket list from data/seed-bucket.json.
+// Loads the starting "want to try" wishlist from data/seed-bucket.json.
 //
 // Run with:  node --env-file=.env.local scripts/seed.mjs
 //

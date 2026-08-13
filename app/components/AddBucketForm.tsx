@@ -3,7 +3,14 @@
 import { useRef, useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 import { addBucketItemAction, type ActionState } from "../actions";
-import { PEOPLE, PERSON_LABELS, TYPE_LABELS, type EntryType } from "@/lib/types";
+import {
+  ENTRY_TYPES,
+  PEOPLE,
+  PERSON_LABELS,
+  TYPE_LABELS,
+  TYPE_STYLE,
+  type EntryType,
+} from "@/lib/types";
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -16,7 +23,7 @@ function SubmitButton() {
 
 export default function AddBucketForm() {
   const [state, formAction] = useFormState<ActionState, FormData>(addBucketItemAction, {});
-  const [type, setType] = useState<EntryType>("activity");
+  const [type, setType] = useState<EntryType>("restaurant");
   const formRef = useRef<HTMLFormElement>(null);
 
   return (
@@ -26,31 +33,43 @@ export default function AddBucketForm() {
         await formAction(fd);
         formRef.current?.reset();
       }}
-      className="border border-navy/20 rounded-sm bg-page-light p-3.5"
+      className="panel p-3.5"
     >
-      <p className="field-label mb-2">Add something to do</p>
+      <p className="field-label mb-2">Add somewhere to try</p>
 
       <div className="flex flex-col sm:flex-row gap-2">
         <input
           name="title"
-          placeholder="Punting, a new restaurant, a dish to cook…"
+          placeholder="A café, a restaurant, a dish to cook…"
           className="input flex-1"
           required
         />
-        <input name="city" placeholder="Cambridge" defaultValue="Cambridge" className="input sm:w-36" />
+        <input
+          name="city"
+          placeholder="Cambridge"
+          defaultValue="Cambridge"
+          className="input sm:w-36"
+        />
         <SubmitButton />
       </div>
 
       <div className="flex flex-wrap items-center gap-1.5 mt-2.5">
-        {(Object.keys(TYPE_LABELS) as EntryType[]).map((t) => (
+        {ENTRY_TYPES.map((t) => (
           <button
             key={t}
             type="button"
             onClick={() => setType(t)}
+            aria-pressed={type === t}
             className={`font-mono text-[10px] tracking-[0.14em] uppercase px-2.5 py-1 rounded-sm border transition-colors ${
-              type === t ? "bg-navy text-page border-navy" : "border-navy/25 text-navy-soft hover:bg-page"
+              type === t
+                ? "bg-accent/15 border-accent text-cream"
+                : "border-line text-muted hover:text-cream hover:border-muted"
             }`}
           >
+            <span
+              className="inline-block w-1.5 h-1.5 rounded-full mr-1.5 align-middle"
+              style={{ backgroundColor: TYPE_STYLE[t].hex }}
+            />
             {TYPE_LABELS[t]}
           </button>
         ))}
@@ -67,7 +86,7 @@ export default function AddBucketForm() {
         )}
       </div>
 
-      {state.error && <p className="font-body text-sm text-vermilion mt-2">{state.error}</p>}
+      {state.error && <p className="font-body text-sm text-accent-hot mt-2">{state.error}</p>}
     </form>
   );
 }

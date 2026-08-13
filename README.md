@@ -1,24 +1,39 @@
-# Tudor & Vanessa — Passport
+# Food Diary
 
-A shared record of things you've done together, kept as passport stamps on a
-map. Cambridge now, London from September, anywhere else later.
+Every café, restaurant and home-cooked meal, on a map, with what each of us
+thought of it. Cambridge now, London later, anywhere else after that.
 
 ## How it works
 
-- **Map** (`/`) — every logged entry is a stamp pinned where it happened.
-  Zoomed out you see one stamp per city; zoom past level 9 and individual
-  stamps appear. Click a stamp to open it.
-- **List** (`/list`) — the bucket list. Undone things at the top, grouped by
-  kind. Press "We did it" to log one; it then moves to the stamped section.
-  Add new items any time.
-- **Log** (`/add`) — record an entry: what, when, where (click the map or
-  search a place), photos, and your own rating and write-up.
-- **Entry** (`/entry/[id]`) — both write-ups side by side. You can only edit
-  your own half; the other person adds theirs when they're ready.
+- **Map** (`/`) — the homepage. Every place we've eaten is a pin, coloured by
+  kind. Zoomed out you get one marker per city with a count; zoom past level 9
+  and the individual places separate. The rail down the left switches between
+  everywhere, cafés, restaurants and home-cooked. The strip along the bottom
+  is the same set as cards — click either a pin or a card and its detail card
+  opens with the cover photo and both our scores.
+- **Entry** (`/entry/[id]`) — the whole thing: photos, both ratings out of 10
+  and both write-ups side by side. Either half can be written or edited at any
+  time. **Edit entry** goes to `/entry/[id]/edit` for the place itself — name,
+  kind, date, location, photos — and holds the delete button.
+- **Add** (`/add`) — a new place: what, when, where (search or click the map),
+  photos, and a first verdict from whichever of us is writing.
+- **Want to try** (`/list`) — the wishlist. Cafés, restaurants and dishes we
+  haven't got to yet, grouped by kind. "We went" carries the item across to
+  `/add` prefilled, and it moves to the *Been* section afterwards.
 
-Three kinds of stamp, each in its own ink and shape: activities print violet
-in a circle, restaurants teal in a rectangle, home-cooked meals vermilion with
-a double border.
+Three kinds of place, each in its own colour: cafés olive, restaurants
+terracotta, home-cooked sand.
+
+## There are no passwords
+
+Whoever is writing picks their name — Vanessa or Tudor — and that choice
+decides which half of a review gets written. The choice is remembered in the
+browser, so you pick it once per device.
+
+This means anyone with the link can add, edit and delete entries. That's the
+trade for never logging in. Keep the URL to yourselves, and note that the
+delete button on the edit page really does remove a place, its photos and both
+write-ups for good — which is why it asks twice.
 
 ## Setup
 
@@ -36,15 +51,12 @@ npm install
    so, copy its value into a new variable named `DATABASE_URL`.
 3. **Storage tab → add a Blob store.** This is where photos go. Vercel adds
    `BLOB_READ_WRITE_TOKEN` automatically.
-4. Add three more environment variables under Settings:
-   - `VANESSA_PASSWORD` — Vanessa's password
-   - `TUDOR_PASSWORD` — Tudor's password
-   - `AUTH_SECRET` — any long random string; it signs the login cookie
-5. Deploy. Both tables are created automatically on first use.
+4. Deploy. Both tables are created automatically on first use.
 
-### Loading the starting bucket list
+### Loading the starting wishlist
 
-`data/seed-bucket.json` holds the 27 starting items. To load them:
+`data/seed-bucket.json` holds twelve places and dishes to start with. To load
+them:
 
 ```bash
 npx vercel link
@@ -61,28 +73,28 @@ node --env-file=.env.local scripts/seed.mjs
 
 Safe to re-run: items are matched on title and city, so nothing duplicates.
 
-## A note on the login
+### Running it locally
 
-Two passwords, one each, stored as environment variables and checked against
-a signed cookie. That's enough to keep strangers out of a private two-person
-app and to make sure each of you can only write your own half of a review.
-It is not designed to protect anything sensitive.
+`npm run dev`, with the same `.env.local`. Without a `DATABASE_URL` the app
+compiles fine but every page throws when it tries to query.
 
 ## Project structure
 
 ```
 app/
-  page.tsx                 Map
-  list/page.tsx            Bucket list
-  add/page.tsx             Log an entry
-  entry/[id]/page.tsx      One entry, both write-ups
-  login/page.tsx           Two-person login
-  actions.ts               All server actions
-  components/              Stamp, MapView, LocationPicker, forms
+  page.tsx                  Map — the homepage
+  add/page.tsx              Add a place
+  entry/[id]/page.tsx       One place, both write-ups
+  entry/[id]/edit/page.tsx  Edit the place, or delete it
+  list/page.tsx             Want to try
+  actions.ts                All server actions
+  components/
+    Nav, MapView, CategoryRail, Pin, PlaceCard, PlaceDetail
+    EntryForm, ReviewForm, WhoPicker, DeleteEntry
+    LocationPicker, PhotoUploader, AddPhotos, AddBucketForm
 lib/
-  db.ts                    Postgres queries
-  auth.ts                  Password check and signed session cookie
-  types.ts                 Shared types, labels, stamp inks
-scripts/seed.mjs           Loads the starting bucket list
-data/seed-bucket.json      The 27 starting items
+  db.ts                     Postgres queries
+  types.ts                  Shared types, labels, colours
+scripts/seed.mjs            Loads the starting wishlist
+data/seed-bucket.json       The twelve starting items
 ```

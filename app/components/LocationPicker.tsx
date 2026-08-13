@@ -98,9 +98,10 @@ export default function LocationPicker({
       );
       mapRef.current = map;
 
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: "&copy; OpenStreetMap",
-        maxZoom: 19,
+      L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+        attribution: "&copy; OpenStreetMap &copy; CARTO",
+        subdomains: "abcd",
+        maxZoom: 20,
       }).addTo(map);
 
       if (value) markerRef.current = L.marker([value.lat, value.lng]).addTo(map);
@@ -164,13 +165,13 @@ export default function LocationPicker({
       </div>
 
       {hits.length > 0 && (
-        <ul className="border border-navy/20 rounded-sm bg-page-light mt-1.5 divide-y divide-navy/10 max-h-44 overflow-y-auto">
+        <ul className="border border-line rounded-sm bg-surface mt-1.5 divide-y divide-line max-h-44 overflow-y-auto">
           {hits.map((hit, i) => (
             <li key={i}>
               <button
                 type="button"
                 onClick={() => chooseHit(hit)}
-                className="w-full text-left px-3 py-2 font-body text-sm text-navy hover:bg-page"
+                className="w-full text-left px-3 py-2 font-body text-sm text-cream hover:bg-surface-2"
               >
                 {hit.display_name}
               </button>
@@ -181,10 +182,10 @@ export default function LocationPicker({
 
       <div
         ref={containerRef}
-        className="h-56 sm:h-64 mt-2 rounded-sm border border-navy/25 overflow-hidden"
+        className="h-56 sm:h-64 mt-2 rounded-sm border border-line overflow-hidden"
       />
 
-      <p className="font-mono text-[10px] tracking-[0.1em] text-navy-soft mt-1.5">
+      <p className="font-mono text-[10px] tracking-[0.1em] text-muted mt-1.5">
         {value
           ? `${value.placeName || "Pinned"}${value.city ? ` · ${value.city}` : ""} · ${value.lat.toFixed(4)}, ${value.lng.toFixed(4)}`
           : "No location set yet"}

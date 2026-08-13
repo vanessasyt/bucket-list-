@@ -100,15 +100,25 @@ function toBucketItem(r: any): BucketItem {
 }
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
+// Every read is scoped to the three food types. An older version of this app
+// also stored 'activity' rows; they stay in the table but no longer surface
+// anywhere, which is the fresh start without throwing anything away.
+const FOOD_TYPES = "('cafe','restaurant','cooking')";
+
 export async function getEntries(): Promise<Entry[]> {
   await ensureSchema();
-  const { rows } = await getPool().query("SELECT * FROM entries ORDER BY date DESC, id DESC;");
+  const { rows } = await getPool().query(
+    `SELECT * FROM entries WHERE type IN ${FOOD_TYPES} ORDER BY date DESC, id DESC;`
+  );
   return rows.map(toEntry);
 }
 
 export async function getEntry(id: number): Promise<Entry | null> {
   await ensureSchema();
-  const { rows } = await getPool().query("SELECT * FROM entries WHERE id = $1;", [id]);
+  const { rows } = await getPool().query(
+    `SELECT * FROM entries WHERE id = $1 AND type IN ${FOOD_TYPES};`,
+    [id]
+  );
   return rows.length ? toEntry(rows[0]) : null;
 }
 
@@ -215,4 +225,54 @@ export async function saveReview(
 export async function addPhotos(entryId: number, urls: string[]): Promise<void> {
   await ensureSchema();
   await getPool().query("UPDATE entries SET photos = photos || $2 WHERE id = $1;", [entryId, urls]);
+}
+
+// Editing can remove a photo as well as add one, so the whole array is
+// replaced rather than appended to.
+export async function setPhotos(entryId: number, urls: string[]): Promise<void> {
+  await ensureSchema();
+  await getPool().query("UPDATE entries SET photos = $2 WHERE id = $1;", [entryId, urls]);
+}
+
+export interface EntryEdit {
+  title: string;
+  type: EntryType;
+  date: string;
+  city: string;
+  placeName: string | null;
+  lat: number;
+  lng: number;
+  photos: string[];
+  cook: Person | null;
+}
+
+// The details of the place itself. Ratings and write-ups are not touched
+// here — those go through saveReview.
+export async function updateEntry(id: number, input: EntryEdit): Promise<void> {
+  await ensureSchema();
+  await getPool().query(
+    `UPDATE entries SET
+       title = $2, type = $3, date = $4, city = $5, place_name = $6,
+       lat = $7, lng = $8, photos = $9, cook = $10
+     WHERE id = $1;`,
+    [
+      id,
+      input.title,
+      input.type,
+      input.date,
+      input.city,
+      input.placeName,
+      input.lat,
+      input.lng,
+      input.photos,
+      input.cook,
+    ]
+  );
+}
+
+// bucket_items.entry_id is ON DELETE SET NULL, so any wishlist item that
+// pointed here simply becomes unticked again.
+export async function deleteEntry(id: number): Promise<void> {
+  await ensureSchema();
+  await getPool().query("DELETE FROM entries WHERE id = $1;", [id]);
 }

@@ -4,40 +4,16 @@
 
 html,
 body {
-  background-color: #071240;
-  color: #f8f7ff;
+  background-color: #17110f;
+  color: #f0e9e1;
 }
 
-/* Guilloche-ish security print: the fine repeating pattern printed on
-   passport pages to make forgery hard. Built from layered gradients so
-   there's no image asset to load. */
-.security-print {
-  background-image:
-    repeating-radial-gradient(
-      circle at 50% 50%,
-      rgba(245, 158, 11, 0.14) 0px,
-      rgba(245, 158, 11, 0.14) 1px,
-      transparent 1px,
-      transparent 9px
-    ),
-    repeating-linear-gradient(
-      45deg,
-      rgba(168, 85, 247, 0.08) 0px,
-      rgba(168, 85, 247, 0.08) 1px,
-      transparent 1px,
-      transparent 7px
-    );
-  background-size:
-    36px 36px,
-    22px 22px;
-}
-
-/* The machine-readable strip along the bottom of a passport's photo page */
-.mrz {
-  font-family: var(--font-plex-mono), monospace;
-  letter-spacing: 0.18em;
-  word-spacing: 0.1em;
-  color: rgba(248, 247, 255, 0.65);
+/* The floating-panel look shared by every overlay sitting on the map. */
+.panel {
+  background: rgba(34, 27, 24, 0.92);
+  border: 1px solid #3a302b;
+  border-radius: 2px;
+  backdrop-filter: blur(6px);
 }
 
 .field-label {
@@ -45,20 +21,23 @@ body {
   font-size: 9px;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: #f59e0b;
+  color: #8c8078;
 }
 
 .input {
   width: 100%;
-  background: #12224f;
-  border: 1px solid rgba(79, 97, 167, 0.6);
-  border-radius: 4px;
+  background: #2e2521;
+  border: 1px solid #3a302b;
+  border-radius: 2px;
   padding: 0.65rem 0.8rem;
   font-family: var(--font-newsreader), serif;
-  color: #f8f7ff;
+  color: #f0e9e1;
+}
+.input::placeholder {
+  color: #8c8078;
 }
 .input:focus {
-  outline: 2px solid #f59e0b;
+  outline: 1px solid #c4553d;
   outline-offset: 1px;
 }
 
@@ -68,17 +47,16 @@ body {
   letter-spacing: 0.16em;
   text-transform: uppercase;
   padding: 0.6rem 1.2rem;
-  border-radius: 4px;
-  background: #fb7185;
-  color: #071240;
-  transition: transform 0.15s ease, opacity 0.15s ease;
+  border-radius: 2px;
+  background: #c4553d;
+  color: #f0e9e1;
+  transition: background-color 0.15s ease;
 }
 .btn:hover {
-  transform: translateY(-1px);
-  opacity: 0.96;
+  background: #d9674c;
 }
 .btn:disabled {
-  opacity: 0.55;
+  opacity: 0.5;
 }
 
 .btn-ghost {
@@ -87,59 +65,15 @@ body {
   letter-spacing: 0.16em;
   text-transform: uppercase;
   padding: 0.5rem 1rem;
-  border-radius: 4px;
-  border: 1px solid rgba(245, 158, 11, 0.5);
-  color: #f8f7ff;
-  background: rgba(245, 158, 11, 0.12);
+  border-radius: 2px;
+  border: 1px solid #3a302b;
+  color: #f0e9e1;
+  background: rgba(34, 27, 24, 0.92);
+  transition: border-color 0.15s ease, color 0.15s ease;
 }
 .btn-ghost:hover {
-  background: rgba(245, 158, 11, 0.2);
-}
-
-/* --- The stamp: this app's signature element --- */
-.stamp {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  border-width: 2px;
-  border-style: solid;
-  font-family: var(--font-plex-mono), monospace;
-  text-transform: uppercase;
-  /* Slightly uneven ink, the way a real rubber stamp prints */
-  opacity: 0.92;
-  mix-blend-mode: multiply;
-}
-
-.stamp-activity {
-  border-radius: 9999px;
-}
-.stamp-restaurant {
-  border-radius: 2px;
-}
-.stamp-cooking {
-  border-radius: 2px;
-  border-style: double;
-  border-width: 4px;
-}
-
-@keyframes stamp-in {
-  0% {
-    opacity: 0;
-    transform: scale(1.6) rotate(var(--stamp-rot, 0deg));
-  }
-  60% {
-    opacity: 0.95;
-    transform: scale(0.94) rotate(var(--stamp-rot, 0deg));
-  }
-  100% {
-    opacity: 0.92;
-    transform: scale(1) rotate(var(--stamp-rot, 0deg));
-  }
-}
-.animate-stamp {
-  animation: stamp-in 0.42s cubic-bezier(0.2, 0.8, 0.3, 1) both;
+  border-color: #c4553d;
+  color: #d9674c;
 }
 
 @keyframes rise {
@@ -157,33 +91,46 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .animate-stamp,
   .animate-rise {
     animation: none;
   }
 }
 
+/* Hide the horizontal scrollbar on the strip of place cards — it scrolls
+   by drag/wheel and the cards themselves show there's more to the right. */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 /* --- Leaflet --- */
 .leaflet-container {
-  background: #dcd2b8;
+  background: #17110f;
   font-family: var(--font-newsreader), serif;
 }
-/* Desaturate the base map so the coloured stamps are what the eye catches */
-.leaflet-tile-pane {
-  filter: saturate(0.35) contrast(0.92) brightness(1.04);
+.leaflet-container a {
+  color: #c4553d;
 }
-.leaflet-container a.leaflet-popup-close-button {
-  color: #14213d;
+/* Custom controls replace the defaults */
+.leaflet-control-zoom {
+  display: none;
 }
-.leaflet-popup-content-wrapper {
-  border-radius: 3px;
-  background: #f7f2e5;
-  color: #14213d;
+.leaflet-control-attribution {
+  background: rgba(23, 17, 15, 0.75) !important;
+  color: #8c8078 !important;
+  font-size: 9px !important;
+  border-radius: 2px 0 0 0;
 }
+.leaflet-popup-content-wrapper,
 .leaflet-popup-tip {
-  background: #f7f2e5;
+  background: #221b18;
+  color: #f0e9e1;
+  border-radius: 2px;
 }
-.stamp-marker {
+.pin-marker {
   background: transparent !important;
   border: none !important;
 }

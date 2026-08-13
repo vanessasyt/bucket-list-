@@ -29,7 +29,7 @@ export default function AddPhotos({ entryId }: { entryId: number }) {
     return (
       <button
         onClick={() => setOpen(true)}
-        className="font-mono text-[10px] tracking-[0.14em] uppercase text-navy-soft hover:text-navy border-b border-dashed border-navy/30"
+        className="font-mono text-[10px] tracking-[0.14em] uppercase text-muted hover:text-cream border-b border-dashed border-line"
       >
         + Add photos
       </button>
@@ -41,7 +41,7 @@ export default function AddPhotos({ entryId }: { entryId: number }) {
       <input type="hidden" name="entryId" value={entryId} />
       <input type="hidden" name="photos" value={JSON.stringify(photos)} />
       <PhotoUploader onChange={handle} compact />
-      {state.error && <p className="font-body text-sm text-vermilion mt-2">{state.error}</p>}
+      {state.error && <p className="font-body text-sm text-accent-hot mt-2">{state.error}</p>}
       <SaveButton disabled={uploading || photos.length === 0} />
     </form>
   );

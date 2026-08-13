@@ -13,11 +13,22 @@ interface Slot {
 export default function PhotoUploader({
   onChange,
   compact = false,
+  initialUrls,
 }: {
   onChange: (urls: string[], uploading: boolean) => void;
   compact?: boolean;
+  // Photos the entry already has, when editing. They start as finished
+  // slots so they can be reordered out — i.e. removed — like any other.
+  initialUrls?: string[];
 }) {
-  const [slots, setSlots] = useState<Slot[]>([]);
+  const [slots, setSlots] = useState<Slot[]>(() =>
+    (initialUrls ?? []).map((url, i) => ({
+      id: `existing-${i}-${url}`,
+      url,
+      error: null,
+      preview: url,
+    }))
+  );
   const inputRef = useRef<HTMLInputElement>(null);
 
   const onChangeRef = useRef(onChange);
@@ -84,17 +95,17 @@ export default function PhotoUploader({
             <img
               src={s.url ?? s.preview}
               alt=""
-              className={`w-full h-full object-cover rounded-sm border border-navy/25 ${
+              className={`w-full h-full object-cover rounded-sm border border-line ${
                 !s.url && !s.error ? "opacity-45" : ""
               }`}
             />
             {!s.url && !s.error && (
-              <span className="absolute inset-0 flex items-center justify-center font-mono text-[8px] uppercase tracking-widest text-navy">
+              <span className="absolute inset-0 flex items-center justify-center font-mono text-[8px] uppercase tracking-widest text-cream">
                 …
               </span>
             )}
             {s.error && (
-              <span className="absolute inset-0 flex items-center justify-center bg-vermilion/15 rounded-sm font-mono text-[7px] text-vermilion text-center px-1 leading-tight">
+              <span className="absolute inset-0 flex items-center justify-center bg-accent/20 rounded-sm font-mono text-[7px] text-accent-hot text-center px-1 leading-tight">
                 {s.error}
               </span>
             )}
@@ -102,7 +113,7 @@ export default function PhotoUploader({
               type="button"
               onClick={() => setSlots((prev) => prev.filter((x) => x.id !== s.id))}
               aria-label="Remove photo"
-              className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-navy text-page text-[10px] leading-none flex items-center justify-center"
+              className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-accent text-cream text-[10px] leading-none flex items-center justify-center"
             >
               ×
             </button>
@@ -112,7 +123,7 @@ export default function PhotoUploader({
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
-          className={`${box} shrink-0 border border-dashed border-navy/35 rounded-sm flex flex-col items-center justify-center text-navy-soft hover:text-navy hover:border-navy/60 transition-colors`}
+          className={`${box} shrink-0 border border-dashed border-line rounded-sm flex flex-col items-center justify-center text-muted hover:text-cream hover:border-muted transition-colors`}
         >
           <span className="text-lg leading-none">+</span>
           <span className="font-mono text-[8px] tracking-[0.14em] uppercase mt-0.5">Photo</span>

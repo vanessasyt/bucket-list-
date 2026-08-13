@@ -2,52 +2,101 @@
 
 import { useCallback, useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
-import { createEntryAction, type ActionState } from "../actions";
+import { createEntryAction, updateEntryAction, type ActionState } from "../actions";
 import {
+  ENTRY_TYPES,
   PEOPLE,
   PERSON_LABELS,
   TYPE_LABELS,
+  TYPE_STYLE,
+  type Entry,
   type EntryType,
   type Person,
 } from "@/lib/types";
 import LocationPicker, { type PickedLocation } from "./LocationPicker";
 import PhotoUploader from "./PhotoUploader";
-import Stamp from "./Stamp";
+import PlaceCard from "./PlaceCard";
+import WhoPicker from "./WhoPicker";
 
-function SubmitButton({ disabled }: { disabled: boolean }) {
+function SubmitButton({ disabled, label }: { disabled: boolean; label: string }) {
   const { pending } = useFormStatus();
   return (
     <button type="submit" disabled={pending || disabled} className="btn w-full">
-      {pending ? "Stamping…" : disabled ? "Waiting for photos…" : "Stamp it"}
+      {pending ? "Saving…" : disabled ? "Waiting for photos…" : label}
+    </button>
+  );
+}
+
+function Choice({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={`font-mono text-[10px] tracking-[0.14em] uppercase py-2 px-2 rounded-sm border transition-colors ${
+        active
+          ? "bg-accent/15 border-accent text-cream"
+          : "border-line text-muted hover:text-cream hover:border-muted"
+      }`}
+    >
+      {children}
     </button>
   );
 }
 
 export default function EntryForm({
-  person,
+  mode = "create",
+  entry,
   defaultTitle,
   defaultType,
   defaultCity,
   defaultCook,
   bucketItemId,
 }: {
-  person: Person;
+  mode?: "create" | "edit";
+  entry?: Entry;
   defaultTitle?: string;
   defaultType?: EntryType;
   defaultCity?: string;
   defaultCook?: Person | null;
   bucketItemId?: number | null;
 }) {
-  const [state, formAction] = useFormState<ActionState, FormData>(createEntryAction, {});
+  const isEdit = mode === "edit" && entry !== undefined;
 
-  const [title, setTitle] = useState(defaultTitle ?? "");
-  const [type, setType] = useState<EntryType>(defaultType ?? "activity");
-  const [cook, setCook] = useState<Person>(defaultCook ?? "tudor");
-  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
-  const [loc, setLoc] = useState<PickedLocation | null>(null);
-  const [cityOverride, setCityOverride] = useState("");
-  const [photos, setPhotos] = useState<string[]>([]);
+  const [state, formAction] = useFormState<ActionState, FormData>(
+    isEdit ? updateEntryAction : createEntryAction,
+    {}
+  );
+
+  const [author, setAuthor] = useState<Person>("vanessa");
+  const [title, setTitle] = useState(entry?.title ?? defaultTitle ?? "");
+  const [type, setType] = useState<EntryType>(entry?.type ?? defaultType ?? "restaurant");
+  const [cook, setCook] = useState<Person>(entry?.cook ?? defaultCook ?? "tudor");
+  const [date, setDate] = useState(
+    () => entry?.date ?? new Date().toISOString().slice(0, 10)
+  );
+  const [loc, setLoc] = useState<PickedLocation | null>(
+    entry
+      ? {
+          lat: entry.lat,
+          lng: entry.lng,
+          city: entry.city,
+          placeName: entry.placeName ?? "",
+        }
+      : null
+  );
+  const [cityOverride, setCityOverride] = useState(entry?.city ?? "");
+  const [photos, setPhotos] = useState<string[]>(entry?.photos ?? []);
   const [uploading, setUploading] = useState(false);
+  const [rating, setRating] = useState("");
 
   const handlePhotos = useCallback((urls: string[], isUploading: boolean) => {
     setPhotos(urls);
@@ -56,8 +105,28 @@ export default function EntryForm({
 
   const city = cityOverride || loc?.city || defaultCity || "";
 
+  // A stand-in Entry so the card in the preview is literally the same
+  // component that will appear in the strip on the map.
+  const preview: Entry = {
+    id: entry?.id ?? -1,
+    title: title || "Untitled",
+    type,
+    date,
+    city: city || "—",
+    placeName: loc?.placeName ?? null,
+    lat: loc?.lat ?? 0,
+    lng: loc?.lng ?? 0,
+    photos,
+    cook: type === "cooking" ? cook : null,
+    vanessaRating: rating ? Number(rating) : null,
+    vanessaReview: null,
+    tudorRating: null,
+    tudorReview: null,
+  };
+
   return (
     <form action={formAction} className="space-y-6">
+      {isEdit && <input type="hidden" name="entryId" value={entry.id} />}
       <input type="hidden" name="lat" value={loc?.lat ?? ""} />
       <input type="hidden" name="lng" value={loc?.lng ?? ""} />
       <input type="hidden" name="city" value={city} />
@@ -68,41 +137,27 @@ export default function EntryForm({
       {type === "cooking" && <input type="hidden" name="cook" value={cook} />}
 
       {state.error && (
-        <p className="font-body text-sm text-vermilion border border-vermilion/40 bg-vermilion/5 rounded-sm px-3 py-2">
+        <p className="font-body text-sm text-accent-hot border border-accent/40 bg-accent/10 rounded-sm px-3 py-2">
           {state.error}
         </p>
       )}
 
-      {/* Live preview of the stamp being earned */}
-      {title && date && (
-        <div className="flex justify-center py-1">
-          <Stamp
-            title={title}
-            type={type}
-            city={city || "—"}
-            date={date}
-            size="md"
-            seed={`${title}${date}`}
-          />
-        </div>
-      )}
+      {/* How this place will look on the map */}
+      <div className="flex justify-center py-1">
+        <PlaceCard entry={preview} selected onSelect={() => {}} />
+      </div>
 
       <div>
         <p className="field-label mb-2">What kind</p>
         <div className="grid grid-cols-3 gap-2">
-          {(Object.keys(TYPE_LABELS) as EntryType[]).map((t) => (
-            <button
-              key={t}
-              type="button"
-              onClick={() => setType(t)}
-              className={`font-mono text-[10px] tracking-[0.14em] uppercase py-2 rounded-sm border transition-colors ${
-                type === t
-                  ? "bg-navy text-page border-navy"
-                  : "border-navy/25 text-navy-soft hover:bg-page-light"
-              }`}
-            >
+          {ENTRY_TYPES.map((t) => (
+            <Choice key={t} active={type === t} onClick={() => setType(t)}>
+              <span
+                className="inline-block w-1.5 h-1.5 rounded-full mr-1.5 align-middle"
+                style={{ backgroundColor: TYPE_STYLE[t].hex }}
+              />
               {TYPE_LABELS[t]}
-            </button>
+            </Choice>
           ))}
         </div>
       </div>
@@ -112,18 +167,9 @@ export default function EntryForm({
           <p className="field-label mb-2">Who cooked</p>
           <div className="grid grid-cols-2 gap-2">
             {PEOPLE.map((p) => (
-              <button
-                key={p}
-                type="button"
-                onClick={() => setCook(p)}
-                className={`font-mono text-[10px] tracking-[0.14em] uppercase py-2 rounded-sm border transition-colors ${
-                  cook === p
-                    ? "bg-navy text-page border-navy"
-                    : "border-navy/25 text-navy-soft hover:bg-page-light"
-                }`}
-              >
+              <Choice key={p} active={cook === p} onClick={() => setCook(p)}>
                 {PERSON_LABELS[p]}
-              </button>
+              </Choice>
             ))}
           </div>
         </div>
@@ -131,13 +177,13 @@ export default function EntryForm({
 
       <div className="grid sm:grid-cols-2 gap-4">
         <label className="block">
-          <span className="field-label">What</span>
+          <span className="field-label">Name</span>
           <input
             name="title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             className="input mt-1.5"
-            placeholder="Bouldering"
+            placeholder="Buren"
             required
           />
         </label>
@@ -158,7 +204,7 @@ export default function EntryForm({
         <p className="field-label mb-1.5">Where</p>
         <LocationPicker value={loc} onChange={setLoc} />
         <label className="block mt-2">
-          <span className="field-label">City on the stamp</span>
+          <span className="field-label">City</span>
           <input
             value={cityOverride || loc?.city || defaultCity || ""}
             onChange={(e) => setCityOverride(e.target.value)}
@@ -170,33 +216,52 @@ export default function EntryForm({
 
       <div>
         <p className="field-label mb-2">Photos</p>
-        <PhotoUploader onChange={handlePhotos} />
+        <PhotoUploader onChange={handlePhotos} initialUrls={entry?.photos} />
+        <p className="font-body text-[13px] text-muted italic mt-2">
+          The first photo becomes the cover.
+        </p>
       </div>
 
-      <fieldset className="border border-navy/25 rounded-sm p-4">
-        <legend className="field-label px-1.5">{PERSON_LABELS[person]}&rsquo;s verdict</legend>
-        <label className="block">
-          <span className="field-label">Out of 10</span>
-          <input
-            type="number"
-            name="rating"
-            step="0.5"
-            min="0"
-            max="10"
-            className="input mt-1.5 sm:w-32"
-          />
-        </label>
-        <label className="block mt-3">
-          <span className="field-label">Write-up</span>
-          <textarea name="review" rows={5} className="input mt-1.5 resize-y" />
-        </label>
-        <p className="font-body text-[13px] text-navy-soft italic mt-2">
-          {PERSON_LABELS[person === "vanessa" ? "tudor" : "vanessa"]} adds theirs from the entry
-          page.
-        </p>
-      </fieldset>
+      {/* Ratings only on the way in. Once a place exists, both write-ups
+          are edited side by side on its own page. */}
+      {!isEdit && (
+        <fieldset className="border border-line rounded-sm p-4 space-y-4">
+          <legend className="field-label px-1.5">First verdict</legend>
 
-      <SubmitButton disabled={uploading} />
+          <WhoPicker value={author} onChange={setAuthor} />
+
+          <label className="block">
+            <span className="field-label">Out of 10</span>
+            <input
+              type="number"
+              name="rating"
+              step="0.5"
+              min="0"
+              max="10"
+              value={rating}
+              onChange={(e) => setRating(e.target.value)}
+              className="input mt-1.5 sm:w-32"
+            />
+          </label>
+
+          <label className="block">
+            <span className="field-label">Write-up</span>
+            <textarea
+              name="review"
+              rows={5}
+              className="input mt-1.5 resize-y"
+              placeholder="What it was actually like…"
+            />
+          </label>
+
+          <p className="font-body text-[13px] text-muted italic">
+            {PERSON_LABELS[author === "vanessa" ? "tudor" : "vanessa"]} adds theirs from the place&rsquo;s
+            page.
+          </p>
+        </fieldset>
+      )}
+
+      <SubmitButton disabled={uploading} label={isEdit ? "Save changes" : "Add to the diary"} />
     </form>
   );
 }

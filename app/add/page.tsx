@@ -1,5 +1,3 @@
-import { redirect } from "next/navigation";
-import { currentPerson } from "@/lib/auth";
 import { getBucketItems } from "@/lib/db";
 import Nav from "../components/Nav";
 import EntryForm from "../components/EntryForm";
@@ -11,10 +9,7 @@ export default async function AddPage({
 }: {
   searchParams: { bucket?: string };
 }) {
-  const person = currentPerson();
-  if (!person) redirect("/login");
-
-  // Arriving from "We did it" on the list pre-fills the form from that item
+  // Arriving from "We went" on the wishlist prefills the form from that item
   let bucketItem = null;
   if (searchParams.bucket) {
     const id = Number(searchParams.bucket);
@@ -26,25 +21,24 @@ export default async function AddPage({
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Nav person={person} active="add" />
+      <Nav active="add" />
 
-      <main className="flex-1 security-print">
-        <div className="mx-auto max-w-2xl px-4 sm:px-5 py-6">
+      <main className="flex-1">
+        <div className="mx-auto max-w-2xl px-4 sm:px-5 py-8">
           <div className="animate-rise">
             <p className="field-label">New entry</p>
-            <h1 className="font-display text-4xl sm:text-5xl font-black text-navy leading-none tracking-wide">
-              LOG A STAMP
+            <h1 className="font-display text-4xl sm:text-5xl text-cream leading-tight">
+              Add a place
             </h1>
             {bucketItem && (
-              <p className="font-body text-sm text-navy-soft mt-2 italic">
+              <p className="font-body text-sm text-muted mt-2 italic">
                 Crossing &ldquo;{bucketItem.title}&rdquo; off the list.
               </p>
             )}
           </div>
 
-          <div className="mt-6">
+          <div className="mt-7">
             <EntryForm
-              person={person}
               defaultTitle={bucketItem?.title}
               defaultType={bucketItem?.type}
               defaultCity={bucketItem?.city}

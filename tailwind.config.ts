@@ -5,19 +5,24 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // A richer blue base with brighter accents for a more playful passport.
-        navy: "#071240",
-        "navy-soft": "#4B6FB5",
-        page: "#0D172F",
-        "page-deep": "#121E3B",
-        "page-light": "#1B2B55",
-        gold: "#F59E0B",
-        violet: "#A855F7",
-        teal: "#14B8A6",
-        vermilion: "#FB7185",
+        // Dark charcoal chrome with a warm terracotta accent. Everything
+        // floats over the map, so the surfaces are deliberately close in
+        // value — the accent is the only loud colour.
+        ink: "#17110F",
+        surface: "#221B18",
+        "surface-2": "#2E2521",
+        line: "#3A302B",
+        accent: "#C4553D",
+        "accent-hot": "#D9674C",
+        cream: "#F0E9E1",
+        muted: "#8C8078",
+        // One colour per kind of place, so pins and dots read without a legend
+        cafe: "#7D8B5A",
+        restaurant: "#C4553D",
+        cooking: "#D9B26A",
       },
       fontFamily: {
-        display: ["var(--font-big-shoulders)", "sans-serif"],
+        display: ["var(--font-newsreader)", "serif"],
         body: ["var(--font-newsreader)", "serif"],
         mono: ["var(--font-plex-mono)", "monospace"],
       },
