@@ -213,11 +213,11 @@ export default function EntryForm({
         <PhotoUploader onChange={handlePhotos} initialUrls={entry?.photos} />
       </div>
 
-      {/* Ratings only on the way in. Once a place exists, both write-ups
+      {/* Ratings only on the way in. Once a place exists, both reviews
           are edited side by side on its own page. */}
       {!isEdit && (
         <fieldset className="border border-line rounded-sm p-4 space-y-4">
-          <legend className="field-label px-1.5">First verdict</legend>
+          <legend className="field-label px-1.5">Verdict</legend>
 
           <WhoPicker value={author} onChange={setAuthor} />
 
@@ -234,7 +234,7 @@ export default function EntryForm({
           </label>
 
           <label className="block">
-            <span className="field-label">Write-up</span>
+            <span className="field-label">Review</span>
             <textarea
               name="review"
               rows={5}

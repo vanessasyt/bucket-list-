@@ -301,7 +301,7 @@ export default function MapView({ entries }: { entries: Entry[] }) {
         </button>
       </div>
 
-      {/* Names and write-ups live here only, behind a click. */}
+      {/* Names and reviews live here only, behind a click. */}
       {selected && (
         <div className="absolute z-[600] left-4 right-4 bottom-[112px] md:left-auto md:right-4 md:bottom-[110px] md:w-[300px]">
           <PlaceDetail entry={selected} onClose={() => setSelectedId(null)} />

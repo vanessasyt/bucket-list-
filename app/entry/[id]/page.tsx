@@ -144,7 +144,7 @@ export default async function EntryPage({ params }: { params: { id: string } }) 
                       {review}
                     </p>
                   ) : (
-                    <p className="font-body text-sm text-muted mb-3">No write-up</p>
+                    <p className="font-body text-sm text-muted mb-3">No review</p>
                   )}
 
                   <ReviewForm

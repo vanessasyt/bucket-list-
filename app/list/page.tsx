@@ -38,6 +38,13 @@ export default async function ListPage() {
 
       <main className="flex-1">
         <div className="mx-auto max-w-3xl px-4 sm:px-5 py-8">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-1.5 font-mono text-[11px] tracking-[0.14em] uppercase text-muted hover:text-ink mb-4"
+          >
+            <span aria-hidden>&larr;</span> Back to map
+          </Link>
+
           <div className="flex items-end justify-between gap-4 animate-rise">
             <div>
               <p className="field-label">The wishlist</p>

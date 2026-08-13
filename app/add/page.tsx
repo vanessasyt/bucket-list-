@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getBucketItems } from "@/lib/db";
 import Nav from "../components/Nav";
 import EntryForm from "../components/EntryForm";
@@ -26,6 +27,12 @@ export default async function AddPage({
       <main className="flex-1">
         <div className="mx-auto max-w-2xl px-4 sm:px-5 py-8">
           <div className="animate-rise">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-1.5 font-mono text-[11px] tracking-[0.14em] uppercase text-muted hover:text-ink mb-4"
+            >
+              <span aria-hidden>&larr;</span> Back to map
+            </Link>
             <p className="field-label">New entry</p>
             <h1 className="font-display text-4xl sm:text-5xl text-ink leading-tight">
               Add a place

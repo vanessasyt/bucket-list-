@@ -30,15 +30,12 @@ export default function Nav({
             strokeLinejoin="round"
             aria-hidden
           >
-            {/* candles */}
-            <path d="M8 8V6M12 8V5M16 8V6" />
-            <circle cx="8" cy="4.6" r="0.9" fill="#FFFFFF" stroke="none" />
-            <circle cx="12" cy="3.6" r="0.9" fill="#FFFFFF" stroke="none" />
-            <circle cx="16" cy="4.6" r="0.9" fill="#FFFFFF" stroke="none" />
-            {/* iced top, body and plate */}
-            <path d="M4 15.5c1.3 0 1.3-1.3 2.7-1.3s1.3 1.3 2.6 1.3 1.4-1.3 2.7-1.3 1.3 1.3 2.7 1.3 1.3-1.3 2.6-1.3 1.4 1.3 2.7 1.3" />
-            <path d="M4 15.5V19a1.5 1.5 0 0 0 1.5 1.5h13A1.5 1.5 0 0 0 20 19v-3.5" />
-            <path d="M4 10.5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v5" />
+            {/* awning, then the shopfront under it */}
+            <path d="M3.4 9.6 4.9 5.3A2 2 0 0 1 6.8 4h10.4a2 2 0 0 1 1.9 1.3l1.5 4.3" />
+            <path d="M3.4 9.6h17.2" />
+            <path d="M5.2 9.6V19a1.4 1.4 0 0 0 1.4 1.4h10.8A1.4 1.4 0 0 0 18.8 19V9.6" />
+            {/* door */}
+            <path d="M9.6 20.4v-4.6a1 1 0 0 1 1-1h2.8a1 1 0 0 1 1 1v4.6" />
           </svg>
         </span>
         <span className="font-display text-lg sm:text-xl text-ink whitespace-nowrap group-hover:text-accent-hot transition-colors">

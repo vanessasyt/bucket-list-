@@ -15,7 +15,7 @@ function SaveButton({ label }: { label: string }) {
   );
 }
 
-// One half of a place's write-up. Which half is decided by `person`, not by
+// One half of a place's review. Which half is decided by `person`, not by
 // who is logged in — there is no logging in. Opening the form is itself the
 // claim that you are that person.
 export default function ReviewForm({
@@ -66,7 +66,7 @@ export default function ReviewForm({
       </label>
 
       <label className="block mt-3">
-        <span className="field-label">{PERSON_LABELS[person]}&rsquo;s write-up</span>
+        <span className="field-label">{PERSON_LABELS[person]}&rsquo;s review</span>
         <textarea
           name="review"
           rows={6}
