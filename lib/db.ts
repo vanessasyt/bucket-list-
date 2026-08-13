@@ -153,6 +153,19 @@ export async function addBucketItem(input: {
   );
 }
 
+export async function updateBucketItem(
+  id: number,
+  input: { title: string; type: EntryType; city: string; cook: Person | null }
+): Promise<void> {
+  await ensureSchema();
+  // (title, city) is UNIQUE, so renaming onto an existing pair raises 23505.
+  // The action turns that into a readable message.
+  await getPool().query(
+    `UPDATE bucket_items SET title = $2, type = $3, city = $4, cook = $5 WHERE id = $1;`,
+    [id, input.title, input.type, input.city, input.cook]
+  );
+}
+
 export async function deleteBucketItem(id: number): Promise<void> {
   await ensureSchema();
   await getPool().query("DELETE FROM bucket_items WHERE id = $1;", [id]);

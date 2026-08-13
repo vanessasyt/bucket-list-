@@ -8,6 +8,7 @@ import {
   createEntry,
   deleteBucketItem,
   deleteEntry,
+  updateBucketItem,
   saveReview,
   addPhotos,
   updateEntry,
@@ -234,6 +235,36 @@ export async function addBucketItemAction(
   const cook: Person | null = type === "cooking" && isPerson(cookRaw) ? cookRaw : null;
 
   await addBucketItem({ title, type, city, cook });
+  revalidatePath("/list");
+  return {};
+}
+
+export async function updateBucketItemAction(
+  _prev: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  const id = Number(formData.get("id"));
+  if (!Number.isFinite(id)) return { error: "Missing item." };
+
+  const title = String(formData.get("title") || "").trim();
+  if (!title) return { error: "Give it a name." };
+
+  const type = String(formData.get("type") || "");
+  if (!isEntryType(type)) return { error: "Pick café, restaurant or home cooked." };
+
+  const city = String(formData.get("city") || "").trim() || "Cambridge";
+  const cookRaw = formData.get("cook");
+  const cook: Person | null = type === "cooking" && isPerson(cookRaw) ? cookRaw : null;
+
+  try {
+    await updateBucketItem(id, { title, type, city, cook });
+  } catch (err) {
+    if ((err as { code?: string }).code === "23505") {
+      return { error: `${title} is already on the list for ${city}.` };
+    }
+    throw err;
+  }
+
   revalidatePath("/list");
   return {};
 }

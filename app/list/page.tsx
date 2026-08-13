@@ -2,7 +2,6 @@ import Link from "next/link";
 import { getBucketItems, getEntries } from "@/lib/db";
 import {
   ENTRY_TYPES,
-  PERSON_LABELS,
   TYPE_LABELS,
   TYPE_STYLE,
   type BucketItem,
@@ -10,6 +9,7 @@ import {
 } from "@/lib/types";
 import Nav from "../components/Nav";
 import AddBucketForm from "../components/AddBucketForm";
+import BucketRow from "../components/BucketRow";
 import { deleteBucketItemAction } from "../actions";
 
 export const dynamic = "force-dynamic";
@@ -79,41 +79,7 @@ export default async function ListPage() {
 
                 <ul className="space-y-1.5">
                   {groupItems.map((item) => (
-                    <li
-                      key={item.id}
-                      className="group flex items-center gap-3 border border-line bg-card rounded-sm px-3.5 py-2.5"
-                    >
-                      <span
-                        className={`w-3.5 h-3.5 rounded-full border ${TYPE_STYLE[item.type].border} shrink-0 opacity-60`}
-                      />
-                      <div className="min-w-0 flex-1">
-                        <p className="font-body text-[15px] text-ink leading-snug">
-                          {item.title}
-                        </p>
-                        <p className="font-mono text-[9px] tracking-[0.14em] uppercase text-muted mt-0.5">
-                          {item.city}
-                          {item.cook && ` · ${PERSON_LABELS[item.cook]} cooks`}
-                        </p>
-                      </div>
-
-                      <Link
-                        href={`/add?bucket=${item.id}`}
-                        className="font-mono text-[10px] tracking-[0.14em] uppercase text-muted hover:text-ink border-b border-dashed border-line shrink-0"
-                      >
-                        We went
-                      </Link>
-
-                      <form action={deleteBucketItemAction}>
-                        <input type="hidden" name="id" value={item.id} />
-                        <button
-                          type="submit"
-                          aria-label={`Remove ${item.title}`}
-                          className="text-muted hover:text-accent-hot text-lg leading-none px-1 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity"
-                        >
-                          ×
-                        </button>
-                      </form>
-                    </li>
+                    <BucketRow key={item.id} item={item} />
                   ))}
                 </ul>
               </section>
@@ -137,25 +103,45 @@ export default async function ListPage() {
                 {done.map((item) => {
                   const entry = item.entryId ? entryById.get(item.entryId) : null;
                   return (
-                    <li key={item.id}>
-                      <Link
-                        href={entry ? `/entry/${entry.id}` : "/list"}
-                        className="flex items-center gap-3 border border-line bg-card/50 rounded-sm px-3.5 py-2.5 hover:bg-card"
+                    <li
+                      key={item.id}
+                      className="flex items-center gap-3 border border-line bg-card/50 rounded-sm px-3.5 py-2.5"
+                    >
+                      <span
+                        className={`w-3.5 h-3.5 rounded-full ${TYPE_STYLE[item.type].bg} shrink-0 flex items-center justify-center text-white text-[9px]`}
                       >
-                        <span
-                          className={`w-3.5 h-3.5 rounded-full ${TYPE_STYLE[item.type].bg} shrink-0 flex items-center justify-center text-white text-[9px]`}
+                        ✓
+                      </span>
+
+                      {entry ? (
+                        <Link
+                          href={`/entry/${entry.id}`}
+                          className="font-body text-[15px] text-muted line-through decoration-line flex-1 min-w-0 truncate hover:text-ink"
                         >
-                          ✓
-                        </span>
-                        <p className="font-body text-[15px] text-muted line-through decoration-line flex-1 min-w-0 truncate">
                           {item.title}
-                        </p>
-                        {entry && (
-                          <span className="font-mono text-[9px] tracking-[0.14em] uppercase text-muted shrink-0">
-                            {entry.date}
-                          </span>
-                        )}
-                      </Link>
+                        </Link>
+                      ) : (
+                        <span className="font-body text-[15px] text-muted line-through decoration-line flex-1 min-w-0 truncate">
+                          {item.title}
+                        </span>
+                      )}
+
+                      {entry && (
+                        <span className="font-mono text-[9px] tracking-[0.14em] uppercase text-muted shrink-0">
+                          {entry.date}
+                        </span>
+                      )}
+
+                      <form action={deleteBucketItemAction} className="shrink-0">
+                        <input type="hidden" name="id" value={item.id} />
+                        <button
+                          type="submit"
+                          aria-label={`Remove ${item.title}`}
+                          className="w-7 h-7 rounded-md border border-line text-muted hover:text-accent-hot hover:border-accent-hot text-base leading-none"
+                        >
+                          ×
+                        </button>
+                      </form>
                     </li>
                   );
                 })}
