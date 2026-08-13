@@ -7,3 +7,6 @@
 *.tsbuildinfo
 next-env.d.ts
 .vercel
+
+# scratch files from debugging
+*.tmp.json
