@@ -144,7 +144,7 @@ export default async function ListPage() {
                         <button
                           type="submit"
                           aria-label={`Remove ${item.title}`}
-                          className="w-7 h-7 rounded-md border border-line text-muted hover:text-accent-hot hover:border-accent-hot text-base leading-none"
+                          className="w-7 h-7 rounded-md border border-line text-muted hover:text-danger hover:border-danger text-base leading-none"
                         >
                           ×
                         </button>

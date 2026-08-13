@@ -86,7 +86,7 @@ export default function AddBucketForm() {
         )}
       </div>
 
-      {state.error && <p className="font-body text-sm text-accent-hot mt-2">{state.error}</p>}
+      {state.error && <p className="font-body text-sm text-danger mt-2">{state.error}</p>}
     </form>
   );
 }

@@ -98,7 +98,7 @@ export default function BucketRow({ item }: { item: BucketItem }) {
           </div>
 
           {state.error && (
-            <p className="font-body text-sm text-accent-hot mt-2">{state.error}</p>
+            <p className="font-body text-sm text-danger mt-2">{state.error}</p>
           )}
 
           <div className="flex items-center gap-3 mt-3">
@@ -155,7 +155,7 @@ export default function BucketRow({ item }: { item: BucketItem }) {
         <button
           type="submit"
           aria-label={`Remove ${item.title}`}
-          className="w-7 h-7 rounded-md border border-line text-muted hover:text-accent-hot hover:border-accent-hot text-base leading-none"
+          className="w-7 h-7 rounded-md border border-line text-muted hover:text-danger hover:border-danger text-base leading-none"
         >
           ×
         </button>

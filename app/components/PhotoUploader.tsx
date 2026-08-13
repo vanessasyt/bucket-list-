@@ -95,9 +95,9 @@ export default function PhotoUploader({
             <img
               src={s.url ?? s.preview}
               alt=""
-              className={`w-full h-full object-cover rounded-sm border border-line ${
-                !s.url && !s.error ? "opacity-45" : ""
-              }`}
+              className={`w-full h-full object-cover rounded-sm border ${
+                s.error ? "border-danger opacity-40" : "border-line"
+              } ${!s.url && !s.error ? "opacity-45" : ""}`}
             />
             {!s.url && !s.error && (
               <span className="absolute inset-0 flex items-center justify-center font-mono text-[8px] uppercase tracking-widest text-ink">
@@ -105,15 +105,20 @@ export default function PhotoUploader({
               </span>
             )}
             {s.error && (
-              <span className="absolute inset-0 flex items-center justify-center bg-accent/20 rounded-sm font-mono text-[7px] text-accent-hot text-center px-1 leading-tight">
-                {s.error}
+              <span
+                className="absolute inset-0 flex items-center justify-center rounded-sm bg-danger/10 text-danger font-mono text-lg"
+                title={s.error}
+              >
+                !
               </span>
             )}
             <button
               type="button"
               onClick={() => setSlots((prev) => prev.filter((x) => x.id !== s.id))}
               aria-label="Remove photo"
-              className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-accent text-white text-[10px] leading-none flex items-center justify-center"
+              className={`absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full text-white text-[10px] leading-none flex items-center justify-center ${
+                s.error ? "bg-danger" : "bg-accent"
+              }`}
             >
               ×
             </button>
@@ -133,13 +138,13 @@ export default function PhotoUploader({
       {/* Failures used to be 7px text inside the tile, which is easy to
           miss entirely. */}
       {slots.some((s) => s.error) && (
-        <div className="mt-2.5 border border-accent-hot/50 bg-accent-hot/10 rounded-sm px-3 py-2">
-          <p className="font-body text-sm text-ink">Some photos didn&rsquo;t upload.</p>
+        <div className="mt-2.5 border border-danger/50 bg-danger/5 rounded-sm px-3 py-2">
+          <p className="font-body text-sm text-danger">Some photos didn&rsquo;t upload.</p>
           <ul className="mt-1 space-y-0.5">
             {slots
               .filter((s) => s.error)
               .map((s) => (
-                <li key={s.id} className="font-mono text-[10px] text-accent-hot break-words">
+                <li key={s.id} className="font-mono text-[10px] text-muted break-words">
                   {s.error}
                 </li>
               ))}

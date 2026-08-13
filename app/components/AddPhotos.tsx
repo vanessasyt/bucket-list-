@@ -5,11 +5,15 @@ import { useFormState, useFormStatus } from "react-dom";
 import { addPhotosAction, type ActionState } from "../actions";
 import PhotoUploader from "./PhotoUploader";
 
-function SaveButton({ disabled }: { disabled: boolean }) {
+function SaveButton({ uploading, empty }: { uploading: boolean; empty: boolean }) {
   const { pending } = useFormStatus();
   return (
-    <button type="submit" disabled={pending || disabled} className="btn mt-2.5">
-      {pending ? "Saving…" : disabled ? "Uploading…" : "Add these"}
+    <button
+      type="submit"
+      disabled={pending || uploading || empty}
+      className="btn mt-2.5"
+    >
+      {pending ? "Saving…" : uploading ? "Uploading…" : "Add these"}
     </button>
   );
 }
@@ -41,8 +45,8 @@ export default function AddPhotos({ entryId }: { entryId: number }) {
       <input type="hidden" name="entryId" value={entryId} />
       <input type="hidden" name="photos" value={JSON.stringify(photos)} />
       <PhotoUploader onChange={handle} compact />
-      {state.error && <p className="font-body text-sm text-accent-hot mt-2">{state.error}</p>}
-      <SaveButton disabled={uploading || photos.length === 0} />
+      {state.error && <p className="font-body text-sm text-danger mt-2">{state.error}</p>}
+      <SaveButton uploading={uploading} empty={photos.length === 0} />
     </form>
   );
 }

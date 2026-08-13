@@ -12,6 +12,7 @@ const config: Config = {
         accent: "#3E7B52",
         "accent-hot": "#33684A",
         ink: "#22302A",
+        danger: "#C2455E",
         muted: "#7A7A6E",
 
         // Category: which kind of place it is.

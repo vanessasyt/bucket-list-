@@ -118,7 +118,7 @@ export default function EntryForm({
       {type === "cooking" && <input type="hidden" name="cook" value={cook} />}
 
       {state.error && (
-        <p className="font-body text-sm text-accent-hot border border-accent/40 bg-accent/10 rounded-sm px-3 py-2">
+        <p className="font-body text-sm text-danger border border-danger/40 bg-danger/5 rounded-sm px-3 py-2">
           {state.error}
         </p>
       )}

@@ -10,7 +10,7 @@ function ConfirmButton() {
     <button
       type="submit"
       disabled={pending}
-      className="btn bg-accent-hot hover:bg-accent whitespace-nowrap"
+      className="btn bg-danger hover:opacity-90 whitespace-nowrap"
     >
       {pending ? "Deleting…" : "Yes, delete it"}
     </button>
@@ -26,7 +26,7 @@ export default function DeleteEntry({ entryId, title }: { entryId: number; title
       <button
         type="button"
         onClick={() => setConfirming(true)}
-        className="font-mono text-[10px] tracking-[0.14em] uppercase text-muted hover:text-accent-hot border-b border-dashed border-line"
+        className="font-mono text-[10px] tracking-[0.14em] uppercase text-muted hover:text-danger border-b border-dashed border-line"
       >
         Delete this entry
       </button>
@@ -34,7 +34,7 @@ export default function DeleteEntry({ entryId, title }: { entryId: number; title
   }
 
   return (
-    <div className="border border-accent/50 bg-accent/10 rounded-sm p-4">
+    <div className="border border-danger/50 bg-danger/5 rounded-sm p-4">
       <p className="font-body text-sm text-ink">
         Delete <span className="italic">{title}</span>? This can&rsquo;t be undone.
       </p>
