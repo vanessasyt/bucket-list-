@@ -122,8 +122,11 @@ export async function uploadPhoto(formData: FormData): Promise<UploadResult> {
       addRandomSuffix: true,
     });
     return { ok: true, url: blob.url };
-  } catch {
-    return { ok: false, error: "Upload failed — is Blob storage connected?" };
+  } catch (err) {
+    // The real message matters here: a missing blob token and a rejected
+    // file fail in completely different ways.
+    const message = err instanceof Error ? err.message : String(err);
+    return { ok: false, error: message.slice(0, 140) };
   }
 }
 

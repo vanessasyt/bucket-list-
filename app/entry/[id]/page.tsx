@@ -36,7 +36,6 @@ export default async function EntryPage({ params }: { params: { id: string } }) 
   if (!entry) notFound();
 
   const style = TYPE_STYLE[entry.type];
-  const cover = entry.photos[0];
   const avg = avgRating(entry);
 
   return (
@@ -44,18 +43,9 @@ export default async function EntryPage({ params }: { params: { id: string } }) 
       <Nav active="map" />
 
       <main className="flex-1">
-        {/* Cover band */}
-        {cover ? (
-          <div className="relative h-48 sm:h-64 w-full overflow-hidden">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={cover} alt="" className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-t from-paper via-paper/40 to-transparent" />
-          </div>
-        ) : (
-          <div className="h-20" style={{ backgroundColor: `${style.hex}1A` }} />
-        )}
+        <div className="h-3" style={{ backgroundColor: `${style.hex}22` }} />
 
-        <div className="mx-auto max-w-3xl px-4 sm:px-5 pb-12 -mt-10 relative">
+        <div className="mx-auto max-w-3xl px-4 sm:px-5 pt-7 pb-12 relative">
           <div className="flex items-start justify-between gap-4 animate-rise">
             <div className="min-w-0">
               <Link
@@ -99,16 +89,23 @@ export default async function EntryPage({ params }: { params: { id: string } }) 
             </div>
           </div>
 
-          {entry.photos.length > 1 && (
-            <div className="flex gap-2.5 overflow-x-auto no-scrollbar mt-7 pb-1">
-              {entry.photos.slice(1).map((url, i) => (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
+          {entry.photos.length > 0 && (
+            <div className="flex flex-wrap gap-6 mt-9 px-1">
+              {entry.photos.map((url, i) => (
+                <figure
                   key={url + i}
-                  src={url}
-                  alt=""
-                  className="shrink-0 w-36 h-36 object-cover rounded-sm border border-line"
-                />
+                  className="bg-white p-2.5 pb-9 border border-line shadow-[0_4px_14px_rgba(34,48,42,0.16)] shrink-0"
+                  // A fixed tilt per position, so the server and the browser
+                  // agree on the angle.
+                  style={{ transform: `rotate(${[-2, 1.5, -1, 2.5, -1.5][i % 5]}deg)` }}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={url}
+                    alt=""
+                    className="w-[150px] h-[150px] sm:w-[180px] sm:h-[180px] object-cover block"
+                  />
+                </figure>
               ))}
             </div>
           )}

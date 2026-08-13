@@ -130,6 +130,23 @@ export default function PhotoUploader({
         </button>
       </div>
 
+      {/* Failures used to be 7px text inside the tile, which is easy to
+          miss entirely. */}
+      {slots.some((s) => s.error) && (
+        <div className="mt-2.5 border border-accent-hot/50 bg-accent-hot/10 rounded-sm px-3 py-2">
+          <p className="font-body text-sm text-ink">Some photos didn&rsquo;t upload.</p>
+          <ul className="mt-1 space-y-0.5">
+            {slots
+              .filter((s) => s.error)
+              .map((s) => (
+                <li key={s.id} className="font-mono text-[10px] text-accent-hot break-words">
+                  {s.error}
+                </li>
+              ))}
+          </ul>
+        </div>
+      )}
+
       <input
         ref={inputRef}
         type="file"
