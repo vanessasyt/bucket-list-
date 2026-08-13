@@ -19,8 +19,15 @@ function monthKey(dateKey: string): string {
   return `${MONTHS[Number(m) - 1]} ${y}`;
 }
 
-function dayOf(dateKey: string): string {
-  return String(Number(dateKey.split("-")[2]));
+function dayOf(dateKey: string): number {
+  return Number(dateKey.split("-")[2]);
+}
+
+// 1st, 2nd, 3rd, 4th — with the 11th/12th/13th exception.
+function ordinal(day: number): string {
+  const teens = day % 100;
+  if (teens >= 11 && teens <= 13) return "th";
+  return { 1: "st", 2: "nd", 3: "rd" }[day % 10] ?? "th";
 }
 
 // Entries arrive newest first from the database, so grouping in order keeps
@@ -102,8 +109,11 @@ export default function Timeline({
                           active ? "bg-accent/10" : "hover:bg-card-2"
                         }`}
                       >
-                        <span className="font-mono text-[11px] text-muted w-5 shrink-0 text-right">
+                        <span className="font-mono text-[11px] text-muted w-8 shrink-0 text-right">
                           {dayOf(entry.date)}
+                          <span className="text-[8px] align-super">
+                            {ordinal(dayOf(entry.date))}
+                          </span>
                         </span>
 
                         <span
