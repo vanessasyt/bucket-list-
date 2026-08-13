@@ -1,13 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  RATING_BANDS,
-  avgRating,
-  formatRating,
-  ratingColour,
-  type Entry,
-} from "@/lib/types";
+import { RATING_BANDS, avgRating, type Entry } from "@/lib/types";
 import CategoryBar, { FILTERS, filterLabel, type Filter } from "./CategoryBar";
 import PlaceDetail from "./PlaceDetail";
 import Timeline from "./Timeline";
@@ -89,14 +83,13 @@ export default function MapView({ entries }: { entries: Entry[] }) {
     [filtered, selectedId]
   );
 
-  const stats = useMemo(() => {
-    const rated = filtered.map(avgRating).filter((r): r is number => r !== null);
-    return {
+  const stats = useMemo(
+    () => ({
       places: filtered.length,
       cities: new Set(filtered.map((e) => e.city)).size,
-      average: rated.length ? rated.reduce((a, b) => a + b, 0) / rated.length : null,
-    };
-  }, [filtered]);
+    }),
+    [filtered]
+  );
 
   /* ---- set the map up once ---- */
   useEffect(() => {
@@ -236,17 +229,7 @@ export default function MapView({ entries }: { entries: Entry[] }) {
       {/* What you're looking at, and what the pin colours mean */}
       <div className="absolute left-4 top-[68px] z-[600] panel px-3 py-2">
         <p className="field-label">{filterLabel(filter)}</p>
-        <p className="font-display text-2xl text-ink leading-none mt-0.5">
-          {stats.places}
-          {stats.average !== null && (
-            <span
-              className="font-mono text-[11px] ml-2"
-              style={{ color: ratingColour(stats.average) }}
-            >
-              avg {formatRating(stats.average)}
-            </span>
-          )}
-        </p>
+        <p className="font-display text-2xl text-ink leading-none mt-0.5">{stats.places}</p>
         <p className="font-mono text-[9px] tracking-[0.14em] uppercase text-muted mt-1">
           {stats.cities} {stats.cities === 1 ? "city" : "cities"}
         </p>

@@ -18,8 +18,28 @@ export default function Nav({
       }`}
     >
       <Link href="/" className="flex items-center gap-2.5 min-w-0 group">
-        <span className="w-6 h-6 rounded-sm bg-accent shrink-0 flex items-center justify-center text-white text-[13px] leading-none">
-          ◆
+        <span className="w-7 h-7 rounded-md bg-accent shrink-0 flex items-center justify-center">
+          <svg
+            width={17}
+            height={17}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#FFFFFF"
+            strokeWidth={1.8}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden
+          >
+            {/* candles */}
+            <path d="M8 8V6M12 8V5M16 8V6" />
+            <circle cx="8" cy="4.6" r="0.9" fill="#FFFFFF" stroke="none" />
+            <circle cx="12" cy="3.6" r="0.9" fill="#FFFFFF" stroke="none" />
+            <circle cx="16" cy="4.6" r="0.9" fill="#FFFFFF" stroke="none" />
+            {/* iced top, body and plate */}
+            <path d="M4 15.5c1.3 0 1.3-1.3 2.7-1.3s1.3 1.3 2.6 1.3 1.4-1.3 2.7-1.3 1.3 1.3 2.7 1.3 1.3-1.3 2.6-1.3 1.4 1.3 2.7 1.3" />
+            <path d="M4 15.5V19a1.5 1.5 0 0 0 1.5 1.5h13A1.5 1.5 0 0 0 20 19v-3.5" />
+            <path d="M4 10.5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v5" />
+          </svg>
         </span>
         <span className="font-display text-lg sm:text-xl text-ink whitespace-nowrap group-hover:text-accent-hot transition-colors">
           Food Diary
