@@ -73,14 +73,28 @@ export async function GET(request: Request) {
     schema = `failed: ${(e as Error).message}`;
   }
 
+  // How much is actually in there — counts only, no contents.
+  let counts: unknown = null;
+  try {
+    const { rows } = await rawQuery(
+      `SELECT (SELECT count(*) FROM entries) AS entries,
+              (SELECT count(*) FROM bucket_items) AS bucket_items,
+              (SELECT count(*) FROM bucket_items WHERE entry_id IS NOT NULL) AS bucket_items_done;`
+    );
+    counts = rows[0];
+  } catch (e) {
+    counts = `failed: ${(e as Error).message}`;
+  }
+
   try {
     const entries = await getEntries();
-    return NextResponse.json({ ok: true, entries: entries.length, schema, env, otherPgVars });
+    return NextResponse.json({ ok: true, entries: entries.length, counts, schema, env, otherPgVars });
   } catch (err) {
     const e = err as { message?: string; code?: string; name?: string; severity?: string };
     return NextResponse.json({
       ok: false,
       error: { name: e.name, message: e.message, code: e.code, severity: e.severity },
+      counts,
       schema,
       env,
       otherPgVars,
