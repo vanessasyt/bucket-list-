@@ -238,9 +238,6 @@ export default function EntryForm({
       <div>
         <p className="field-label mb-2">Photos</p>
         <PhotoUploader onChange={handlePhotos} initialUrls={entry?.photos} />
-        <p className="font-body text-[13px] text-muted italic mt-2">
-          The first photo becomes the cover.
-        </p>
       </div>
 
       {/* Ratings only on the way in. Once a place exists, both write-ups
@@ -271,14 +268,8 @@ export default function EntryForm({
               name="review"
               rows={5}
               className="input mt-1.5 resize-y"
-              placeholder="What it was actually like…"
             />
           </label>
-
-          <p className="font-body text-[13px] text-muted italic">
-            {PERSON_LABELS[author === "vanessa" ? "tudor" : "vanessa"]} adds theirs from the place&rsquo;s
-            page.
-          </p>
         </fieldset>
       )}
 

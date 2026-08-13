@@ -1,10 +1,14 @@
+"use client";
+
 import Link from "next/link";
+import { useState } from "react";
 import {
   PEOPLE,
   PERSON_LABELS,
   TYPE_LABELS_ONE,
   TYPE_STYLE,
   formatRating,
+  ratingColour,
   ratingOf,
   type Entry,
 } from "@/lib/types";
@@ -16,8 +20,6 @@ function shortDate(dateKey: string): string {
   return `${Number(d)} ${MONTHS[Number(m) - 1]} ${y}`;
 }
 
-// The card that appears when a place is selected — a quick look at it
-// without leaving the map. The full write-ups live on the entry page.
 export default function PlaceDetail({
   entry,
   onClose,
@@ -26,14 +28,16 @@ export default function PlaceDetail({
   onClose: () => void;
 }) {
   const style = TYPE_STYLE[entry.type];
-  const cover = entry.photos[0];
+  const [shown, setShown] = useState(0);
+  const photos = entry.photos;
+  const cover = photos[shown];
 
   return (
     <div className="panel w-full md:w-[300px] overflow-hidden animate-rise">
       <div className="relative">
         {cover ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={cover} alt="" className="w-full h-28 object-cover" />
+          <img src={cover} alt="" className="w-full h-32 object-cover" />
         ) : (
           <div
             className="w-full h-16 flex items-center justify-center"
@@ -48,6 +52,12 @@ export default function PlaceDetail({
           </div>
         )}
 
+        {photos.length > 1 && (
+          <span className="absolute bottom-1.5 left-1.5 font-mono text-[9px] text-white bg-ink/60 rounded px-1.5 py-0.5">
+            {shown + 1}/{photos.length}
+          </span>
+        )}
+
         <button
           type="button"
           onClick={onClose}
@@ -57,6 +67,25 @@ export default function PlaceDetail({
           ×
         </button>
       </div>
+
+      {photos.length > 1 && (
+        <div className="flex gap-1.5 overflow-x-auto no-scrollbar px-2.5 pt-2.5">
+          {photos.map((url, i) => (
+            <button
+              key={url + i}
+              type="button"
+              onClick={() => setShown(i)}
+              aria-label={`Photo ${i + 1}`}
+              className={`shrink-0 rounded overflow-hidden border-2 transition-colors ${
+                i === shown ? "border-accent" : "border-transparent hover:border-line"
+              }`}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={url} alt="" className="w-[52px] h-[52px] object-cover block" />
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="p-3.5">
         <p className="font-mono text-[9px] tracking-[0.2em] uppercase" style={{ color: style.hex }}>
@@ -78,14 +107,14 @@ export default function PlaceDetail({
             return (
               <div key={p}>
                 <p className="field-label">{PERSON_LABELS[p]}</p>
-                <p className="font-mono text-lg text-ink mt-0.5">
+                <p className="font-mono text-lg mt-0.5">
                   {rating === null ? (
                     <span className="text-muted text-sm">—</span>
                   ) : (
-                    <>
+                    <span style={{ color: ratingColour(rating) }}>
                       {formatRating(rating)}
                       <span className="text-muted text-[11px]">/10</span>
-                    </>
+                    </span>
                   )}
                 </p>
               </div>
@@ -93,10 +122,7 @@ export default function PlaceDetail({
           })}
         </div>
 
-        <Link
-          href={`/entry/${entry.id}`}
-          className="btn w-full block text-center mt-3.5"
-        >
+        <Link href={`/entry/${entry.id}`} className="btn w-full block text-center mt-3.5">
           Open
         </Link>
       </div>

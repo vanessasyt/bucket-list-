@@ -17,8 +17,7 @@ function ConfirmButton() {
   );
 }
 
-// Nothing here is password-protected, so deleting asks twice: once to reveal
-// the button and once to press it.
+// Deleting asks twice, since nothing here is password-protected.
 export default function DeleteEntry({ entryId, title }: { entryId: number; title: string }) {
   const [confirming, setConfirming] = useState(false);
 
@@ -37,8 +36,7 @@ export default function DeleteEntry({ entryId, title }: { entryId: number; title
   return (
     <div className="border border-accent/50 bg-accent/10 rounded-sm p-4">
       <p className="font-body text-sm text-ink">
-        Delete <span className="italic">{title}</span>? Its photos, ratings and both write-ups go
-        with it, and there is no undo.
+        Delete <span className="italic">{title}</span>? This can&rsquo;t be undone.
       </p>
       <div className="flex items-center gap-3 mt-3">
         <form action={deleteEntryAction}>

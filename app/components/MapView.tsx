@@ -1,9 +1,16 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { avgRating, formatRating, type Entry } from "@/lib/types";
+import {
+  RATING_BANDS,
+  avgRating,
+  formatRating,
+  ratingColour,
+  type Entry,
+} from "@/lib/types";
 import CategoryBar, { FILTERS, filterLabel, type Filter } from "./CategoryBar";
 import PlaceDetail from "./PlaceDetail";
+import Timeline from "./Timeline";
 import {
   CITY_PIN_SIZE,
   PIN_BOX_H,
@@ -22,15 +29,21 @@ interface CityGroup {
   lat: number;
   lng: number;
   count: number;
+  average: number | null;
 }
 
 function groupByCity(entries: Entry[]): CityGroup[] {
-  const map = new Map<string, { latSum: number; lngSum: number; count: number }>();
+  const map = new Map<
+    string,
+    { latSum: number; lngSum: number; count: number; ratings: number[] }
+  >();
   for (const e of entries) {
-    const g = map.get(e.city) ?? { latSum: 0, lngSum: 0, count: 0 };
+    const g = map.get(e.city) ?? { latSum: 0, lngSum: 0, count: 0, ratings: [] };
     g.latSum += e.lat;
     g.lngSum += e.lng;
     g.count += 1;
+    const r = avgRating(e);
+    if (r !== null) g.ratings.push(r);
     map.set(e.city, g);
   }
   return Array.from(map.entries()).map(([city, g]) => ({
@@ -38,6 +51,9 @@ function groupByCity(entries: Entry[]): CityGroup[] {
     lat: g.latSum / g.count,
     lng: g.lngSum / g.count,
     count: g.count,
+    average: g.ratings.length
+      ? g.ratings.reduce((a, b) => a + b, 0) / g.ratings.length
+      : null,
   }));
 }
 
@@ -53,6 +69,7 @@ export default function MapView({ entries }: { entries: Entry[] }) {
   const [zoom, setZoom] = useState(12);
   const [filter, setFilter] = useState<Filter>("all");
   const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [timelineOpen, setTimelineOpen] = useState(false);
 
   const filtered = useMemo(
     () => (filter === "all" ? entries : entries.filter((e) => e.type === filter)),
@@ -98,8 +115,7 @@ export default function MapView({ entries }: { entries: Entry[] }) {
       });
       mapRef.current = map;
 
-      // Pale basemap: the map is background, the pins carry the meaning.
-      L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+      L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
         attribution: "&copy; OpenStreetMap &copy; CARTO",
         subdomains: "abcd",
         maxZoom: 20,
@@ -145,7 +161,7 @@ export default function MapView({ entries }: { entries: Entry[] }) {
         L.marker([c.lat, c.lng], {
           icon: L.divIcon({
             className: "pin-marker",
-            html: cityPinHtml(c.city, c.count),
+            html: cityPinHtml(c.city, c.count, c.average),
             iconSize: [CITY_PIN_SIZE, CITY_PIN_SIZE],
             iconAnchor: [CITY_PIN_SIZE / 2, CITY_PIN_SIZE / 2],
           }),
@@ -192,6 +208,15 @@ export default function MapView({ entries }: { entries: Entry[] }) {
     mapRef.current?.panTo([entry.lat, entry.lng], { animate: true, duration: 0.4 });
   }
 
+  // Picking from the list can happen while zoomed out, where individual pins
+  // aren't drawn yet, so this one zooms in far enough to actually show it.
+  function selectFromList(entry: Entry) {
+    setSelectedId(entry.id);
+    const map = mapRef.current;
+    if (!map) return;
+    map.flyTo([entry.lat, entry.lng], Math.max(map.getZoom(), 15), { duration: 0.8 });
+  }
+
   function fitAll() {
     const L = LRef.current;
     const map = mapRef.current;
@@ -208,13 +233,16 @@ export default function MapView({ entries }: { entries: Entry[] }) {
     <div className="relative h-full w-full">
       <div ref={containerRef} className="h-full w-full" />
 
-      {/* What you're looking at, top left under the bar */}
+      {/* What you're looking at, and what the pin colours mean */}
       <div className="absolute left-4 top-[68px] z-[600] panel px-3 py-2">
         <p className="field-label">{filterLabel(filter)}</p>
         <p className="font-display text-2xl text-ink leading-none mt-0.5">
           {stats.places}
           {stats.average !== null && (
-            <span className="font-mono text-[11px] text-muted ml-2">
+            <span
+              className="font-mono text-[11px] ml-2"
+              style={{ color: ratingColour(stats.average) }}
+            >
               avg {formatRating(stats.average)}
             </span>
           )}
@@ -222,7 +250,45 @@ export default function MapView({ entries }: { entries: Entry[] }) {
         <p className="font-mono text-[9px] tracking-[0.14em] uppercase text-muted mt-1">
           {stats.cities} {stats.cities === 1 ? "city" : "cities"}
         </p>
+
+        <div className="mt-2 pt-2 border-t border-line">
+          <div className="flex items-center gap-1">
+            {RATING_BANDS.map((band) => (
+              <span
+                key={band.hex}
+                className="w-4 h-2 rounded-sm first:rounded-l last:rounded-r"
+                style={{ backgroundColor: band.hex }}
+                title={band.label}
+              />
+            ))}
+          </div>
+          <div className="flex justify-between font-mono text-[8px] text-muted mt-1">
+            <span>9+</span>
+            <span>4.5</span>
+          </div>
+        </div>
       </div>
+
+      {/* Everything we've been to, newest first */}
+      <button
+        type="button"
+        onClick={() => setTimelineOpen(true)}
+        className="absolute right-4 top-[68px] z-[600] panel px-3 py-2 flex items-center gap-2 text-ink hover:border-muted"
+      >
+        <svg
+          width={16}
+          height={16}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={1.7}
+          strokeLinecap="round"
+          aria-hidden
+        >
+          <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" />
+        </svg>
+        <span className="font-mono text-[10px] tracking-[0.14em] uppercase">List</span>
+      </button>
 
       {/* Zoom and recentre, down the right edge */}
       <div className="absolute right-4 top-1/2 -translate-y-1/2 z-[600] flex flex-col gap-1.5">
@@ -252,8 +318,7 @@ export default function MapView({ entries }: { entries: Entry[] }) {
         </button>
       </div>
 
-      {/* The name and the write-ups only exist here — clicking a pin is the
-          only way to find out what a place is called. */}
+      {/* Names and write-ups live here only, behind a click. */}
       {selected && (
         <div className="absolute z-[600] left-4 right-4 bottom-[112px] md:left-auto md:right-4 md:bottom-[110px] md:w-[300px]">
           <PlaceDetail entry={selected} onClose={() => setSelectedId(null)} />
@@ -265,13 +330,21 @@ export default function MapView({ entries }: { entries: Entry[] }) {
         <CategoryBar value={filter} counts={counts} onChange={setFilter} />
       </div>
 
+      <Timeline
+        entries={filtered}
+        selectedId={selectedId}
+        open={timelineOpen}
+        onSelect={(entry) => {
+          selectFromList(entry);
+          setTimelineOpen(false);
+        }}
+        onClose={() => setTimelineOpen(false)}
+      />
+
       {filtered.length === 0 && (
         <div className="absolute inset-0 z-[500] flex items-center justify-center pointer-events-none">
           <div className="panel px-5 py-4 text-center max-w-xs">
-            <p className="field-label">Nothing here yet</p>
-            <p className="font-body text-sm text-ink mt-1.5">
-              Add somewhere you&rsquo;ve eaten and it&rsquo;ll appear on the map.
-            </p>
+            <p className="font-body text-sm text-ink">No places yet</p>
           </div>
         </div>
       )}

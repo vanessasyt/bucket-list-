@@ -1,4 +1,11 @@
-import { TYPE_LABELS_ONE, TYPE_STYLE, avgRating, formatRating, type Entry } from "@/lib/types";
+import {
+  TYPE_LABELS_ONE,
+  TYPE_STYLE,
+  avgRating,
+  formatRating,
+  ratingColour,
+  type Entry,
+} from "@/lib/types";
 
 // The thumbnail: the first uploaded photo, or a tinted tile in the type's
 // colour when there's no photo yet, so the strip never has holes in it.
@@ -63,7 +70,7 @@ export default function PlaceCard({
 
       <div className="shrink-0 text-right">
         {avg !== null ? (
-          <span className="font-mono text-sm font-semibold" style={{ color: style.hex }}>
+          <span className="font-mono text-sm font-semibold" style={{ color: ratingColour(avg) }}>
             {formatRating(avg)}
           </span>
         ) : (

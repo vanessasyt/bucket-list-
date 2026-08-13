@@ -38,19 +38,37 @@ export function hasCuisine(type: EntryType): boolean {
   return type === "cafe" || type === "restaurant";
 }
 
-// Tailwind class fragments per type, kept in one place so the pin, the card
-// and the list dot can never drift apart.
+// Category colour: which kind of place this is. The hex must stay in step
+// with the Tailwind tokens of the same names, since pins use the hex and
+// list dots use the class.
 export const TYPE_STYLE: Record<EntryType, { text: string; border: string; bg: string; hex: string }> =
   {
-    cafe: { text: "text-cafe", border: "border-cafe", bg: "bg-cafe", hex: "#7D8B5A" },
+    cafe: { text: "text-cafe", border: "border-cafe", bg: "bg-cafe", hex: "#2FA37A" },
     restaurant: {
       text: "text-restaurant",
       border: "border-restaurant",
       bg: "bg-restaurant",
-      hex: "#C4553D",
+      hex: "#C2455E",
     },
-    cooking: { text: "text-cooking", border: "border-cooking", bg: "bg-cooking", hex: "#D9B26A" },
+    cooking: { text: "text-cooking", border: "border-cooking", bg: "bg-cooking", hex: "#8259A8" },
   };
+
+// Rating colour: how good it was. Separate from the category colours so a
+// pin can say both things at once.
+export const RATING_BANDS: { min: number; hex: string; label: string }[] = [
+  { min: 9, hex: "#16704A", label: "9+" },
+  { min: 7.5, hex: "#4E9E5F", label: "7.5" },
+  { min: 6, hex: "#A9A63C", label: "6" },
+  { min: 4.5, hex: "#B5657B", label: "4.5" },
+  { min: 0, hex: "#8C8C93", label: "0" },
+];
+
+export const RATING_NONE_HEX = "#FFFFFF";
+
+export function ratingColour(value: number | null): string {
+  if (value === null) return RATING_NONE_HEX;
+  return (RATING_BANDS.find((b) => value >= b.min) ?? RATING_BANDS[RATING_BANDS.length - 1]).hex;
+}
 
 export interface BucketItem {
   id: number;

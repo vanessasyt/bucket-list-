@@ -5,20 +5,27 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // A pale map with white cards floating on it. The map is the quietest
-        // thing on screen so the coloured pins carry all the meaning.
-        paper: "#EDEAE4",
+        paper: "#F7F4EC",
         card: "#FFFFFF",
-        "card-2": "#F4F1EB",
-        line: "#DFD8CC",
-        accent: "#C4553D",
-        "accent-hot": "#A8442F",
-        ink: "#2B2724",
-        muted: "#7C736A",
-        // One colour per kind of place, dark enough to carry white text
-        cafe: "#5F7A4A",
-        restaurant: "#C4553D",
-        cooking: "#B07C2B",
+        "card-2": "#F1EDE3",
+        line: "#DED7C8",
+        accent: "#3E7B52",
+        "accent-hot": "#33684A",
+        ink: "#22302A",
+        muted: "#7A7A6E",
+
+        // Category: which kind of place it is.
+        cafe: "#2FA37A",
+        restaurant: "#C2455E",
+        cooking: "#8259A8",
+
+        // Rating: how good it was. Kept apart from the category colours so
+        // neither has to mean two things.
+        "rating-1": "#16704A",
+        "rating-2": "#4E9E5F",
+        "rating-3": "#A9A63C",
+        "rating-4": "#B5657B",
+        "rating-5": "#8C8C93",
       },
       fontFamily: {
         display: ["var(--font-newsreader)", "serif"],

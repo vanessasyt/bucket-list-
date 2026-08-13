@@ -8,6 +8,7 @@ import {
   TYPE_STYLE,
   avgRating,
   formatRating,
+  ratingColour,
   ratingOf,
   reviewOf,
 } from "@/lib/types";
@@ -86,7 +87,10 @@ export default async function EntryPage({ params }: { params: { id: string } }) 
               {avg !== null && (
                 <div className="text-right">
                   <p className="field-label">Between us</p>
-                  <p className="font-display text-3xl text-ink leading-none mt-0.5">
+                  <p
+                    className="font-display text-3xl leading-none mt-0.5"
+                    style={{ color: ratingColour(avg) }}
+                  >
                     {formatRating(avg)}
                     <span className="text-muted text-base">/10</span>
                   </p>
@@ -123,7 +127,10 @@ export default async function EntryPage({ params }: { params: { id: string } }) 
                   <div className="flex items-baseline justify-between gap-2">
                     <h2 className="font-display text-2xl text-ink">{PERSON_LABELS[p]}</h2>
                     {rating !== null && (
-                      <span className="font-mono text-lg font-semibold" style={{ color: style.hex }}>
+                      <span
+                        className="font-mono text-lg font-semibold"
+                        style={{ color: ratingColour(rating) }}
+                      >
                         {formatRating(rating)}
                         <span className="text-muted text-xs">/10</span>
                       </span>
@@ -137,9 +144,7 @@ export default async function EntryPage({ params }: { params: { id: string } }) 
                       {review}
                     </p>
                   ) : (
-                    <p className="font-body text-sm text-muted italic mb-3">
-                      Nothing written yet.
-                    </p>
+                    <p className="font-body text-sm text-muted mb-3">No write-up</p>
                   )}
 
                   <ReviewForm

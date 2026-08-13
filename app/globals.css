@@ -4,16 +4,16 @@
 
 html,
 body {
-  background-color: #edeae4;
-  color: #2b2724;
+  background-color: #f7f4ec;
+  color: #22302a;
 }
 
 /* The floating-card look shared by every overlay sitting on the map. */
 .panel {
   background: rgba(255, 255, 255, 0.97);
-  border: 1px solid #dfd8cc;
+  border: 1px solid #ded7c8;
   border-radius: 10px;
-  box-shadow: 0 4px 16px rgba(43, 39, 36, 0.12);
+  box-shadow: 0 4px 16px rgba(34, 48, 42, 0.12);
   backdrop-filter: blur(6px);
 }
 
@@ -22,25 +22,25 @@ body {
   font-size: 9px;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: #7c736a;
+  color: #7a7a6e;
 }
 
 .input {
   width: 100%;
   background: #ffffff;
-  border: 1px solid #dfd8cc;
+  border: 1px solid #ded7c8;
   border-radius: 6px;
   padding: 0.65rem 0.8rem;
   font-family: var(--font-newsreader), serif;
-  color: #2b2724;
+  color: #22302a;
 }
 .input::placeholder {
-  color: #a89e93;
+  color: #a09a8c;
 }
 .input:focus {
-  outline: 2px solid #c4553d;
+  outline: 2px solid #3e7b52;
   outline-offset: -1px;
-  border-color: #c4553d;
+  border-color: #3e7b52;
 }
 
 .btn {
@@ -50,12 +50,12 @@ body {
   text-transform: uppercase;
   padding: 0.6rem 1.2rem;
   border-radius: 6px;
-  background: #c4553d;
+  background: #3e7b52;
   color: #ffffff;
   transition: background-color 0.15s ease;
 }
 .btn:hover {
-  background: #a8442f;
+  background: #33684a;
 }
 .btn:disabled {
   opacity: 0.5;
@@ -68,14 +68,14 @@ body {
   text-transform: uppercase;
   padding: 0.5rem 1rem;
   border-radius: 6px;
-  border: 1px solid #dfd8cc;
-  color: #2b2724;
+  border: 1px solid #ded7c8;
+  color: #22302a;
   background: #ffffff;
   transition: border-color 0.15s ease, color 0.15s ease;
 }
 .btn-ghost:hover {
-  border-color: #c4553d;
-  color: #c4553d;
+  border-color: #3e7b52;
+  color: #3e7b52;
 }
 
 @keyframes rise {
@@ -108,11 +108,11 @@ body {
 
 /* --- Leaflet --- */
 .leaflet-container {
-  background: #edeae4;
+  background: #f7f4ec;
   font-family: var(--font-newsreader), serif;
 }
 .leaflet-container a {
-  color: #c4553d;
+  color: #3e7b52;
 }
 /* Custom controls replace the defaults */
 .leaflet-control-zoom {
@@ -120,14 +120,14 @@ body {
 }
 .leaflet-control-attribution {
   background: rgba(255, 255, 255, 0.8) !important;
-  color: #7c736a !important;
+  color: #7a7a6e !important;
   font-size: 9px !important;
   border-radius: 4px 0 0 0;
 }
 .leaflet-popup-content-wrapper,
 .leaflet-popup-tip {
   background: #ffffff;
-  color: #2b2724;
+  color: #22302a;
   border-radius: 8px;
 }
 .pin-marker {

@@ -31,8 +31,8 @@ export default async function AddPage({
               Add a place
             </h1>
             {bucketItem && (
-              <p className="font-body text-sm text-muted mt-2 italic">
-                Crossing &ldquo;{bucketItem.title}&rdquo; off the list.
+              <p className="font-mono text-[10px] tracking-[0.14em] uppercase text-muted mt-2">
+                From your list
               </p>
             )}
           </div>

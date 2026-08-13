@@ -121,9 +121,7 @@ export default async function ListPage() {
           )}
 
           {todo.length === 0 && (
-            <p className="font-body text-sm text-muted italic mt-8">
-              Nothing on the list. Add somewhere you want to go.
-            </p>
+            <p className="font-body text-sm text-muted mt-8">Nothing yet</p>
           )}
 
           {done.length > 0 && (

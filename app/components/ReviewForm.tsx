@@ -72,7 +72,6 @@ export default function ReviewForm({
           rows={6}
           defaultValue={existingReview ?? ""}
           className="input mt-1.5 resize-y"
-          placeholder="What it was actually like…"
         />
       </label>
 
