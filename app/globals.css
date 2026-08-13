@@ -4,15 +4,16 @@
 
 html,
 body {
-  background-color: #17110f;
-  color: #f0e9e1;
+  background-color: #edeae4;
+  color: #2b2724;
 }
 
-/* The floating-panel look shared by every overlay sitting on the map. */
+/* The floating-card look shared by every overlay sitting on the map. */
 .panel {
-  background: rgba(34, 27, 24, 0.92);
-  border: 1px solid #3a302b;
-  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.97);
+  border: 1px solid #dfd8cc;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(43, 39, 36, 0.12);
   backdrop-filter: blur(6px);
 }
 
@@ -21,24 +22,25 @@ body {
   font-size: 9px;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: #8c8078;
+  color: #7c736a;
 }
 
 .input {
   width: 100%;
-  background: #2e2521;
-  border: 1px solid #3a302b;
-  border-radius: 2px;
+  background: #ffffff;
+  border: 1px solid #dfd8cc;
+  border-radius: 6px;
   padding: 0.65rem 0.8rem;
   font-family: var(--font-newsreader), serif;
-  color: #f0e9e1;
+  color: #2b2724;
 }
 .input::placeholder {
-  color: #8c8078;
+  color: #a89e93;
 }
 .input:focus {
-  outline: 1px solid #c4553d;
-  outline-offset: 1px;
+  outline: 2px solid #c4553d;
+  outline-offset: -1px;
+  border-color: #c4553d;
 }
 
 .btn {
@@ -47,13 +49,13 @@ body {
   letter-spacing: 0.16em;
   text-transform: uppercase;
   padding: 0.6rem 1.2rem;
-  border-radius: 2px;
+  border-radius: 6px;
   background: #c4553d;
-  color: #f0e9e1;
+  color: #ffffff;
   transition: background-color 0.15s ease;
 }
 .btn:hover {
-  background: #d9674c;
+  background: #a8442f;
 }
 .btn:disabled {
   opacity: 0.5;
@@ -65,15 +67,15 @@ body {
   letter-spacing: 0.16em;
   text-transform: uppercase;
   padding: 0.5rem 1rem;
-  border-radius: 2px;
-  border: 1px solid #3a302b;
-  color: #f0e9e1;
-  background: rgba(34, 27, 24, 0.92);
+  border-radius: 6px;
+  border: 1px solid #dfd8cc;
+  color: #2b2724;
+  background: #ffffff;
   transition: border-color 0.15s ease, color 0.15s ease;
 }
 .btn-ghost:hover {
   border-color: #c4553d;
-  color: #d9674c;
+  color: #c4553d;
 }
 
 @keyframes rise {
@@ -96,8 +98,6 @@ body {
   }
 }
 
-/* Hide the horizontal scrollbar on the strip of place cards — it scrolls
-   by drag/wheel and the cards themselves show there's more to the right. */
 .no-scrollbar {
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -108,7 +108,7 @@ body {
 
 /* --- Leaflet --- */
 .leaflet-container {
-  background: #17110f;
+  background: #edeae4;
   font-family: var(--font-newsreader), serif;
 }
 .leaflet-container a {
@@ -119,16 +119,16 @@ body {
   display: none;
 }
 .leaflet-control-attribution {
-  background: rgba(23, 17, 15, 0.75) !important;
-  color: #8c8078 !important;
+  background: rgba(255, 255, 255, 0.8) !important;
+  color: #7c736a !important;
   font-size: 9px !important;
-  border-radius: 2px 0 0 0;
+  border-radius: 4px 0 0 0;
 }
 .leaflet-popup-content-wrapper,
 .leaflet-popup-tip {
-  background: #221b18;
-  color: #f0e9e1;
-  border-radius: 2px;
+  background: #ffffff;
+  color: #2b2724;
+  border-radius: 8px;
 }
 .pin-marker {
   background: transparent !important;

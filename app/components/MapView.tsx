@@ -2,10 +2,16 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { avgRating, formatRating, type Entry } from "@/lib/types";
-import CategoryRail, { FILTERS, type Filter } from "./CategoryRail";
-import PlaceCard from "./PlaceCard";
+import CategoryBar, { FILTERS, filterLabel, type Filter } from "./CategoryBar";
 import PlaceDetail from "./PlaceDetail";
-import { CITY_PIN_SIZE, PIN_SELECTED_SIZE, PIN_SIZE, cityPinHtml, pinHtml } from "./Pin";
+import {
+  CITY_PIN_SIZE,
+  PIN_BOX_H,
+  PIN_BOX_W,
+  PIN_TIP_Y,
+  cityPinHtml,
+  pinHtml,
+} from "./Pin";
 
 // Zoomed out past this, individual places collapse into one marker per city
 // — the overview. Zoom in and they separate again.
@@ -67,13 +73,13 @@ export default function MapView({ entries }: { entries: Entry[] }) {
   );
 
   const stats = useMemo(() => {
-    const rated = entries.map(avgRating).filter((r): r is number => r !== null);
+    const rated = filtered.map(avgRating).filter((r): r is number => r !== null);
     return {
-      places: entries.length,
-      cities: new Set(entries.map((e) => e.city)).size,
+      places: filtered.length,
+      cities: new Set(filtered.map((e) => e.city)).size,
       average: rated.length ? rated.reduce((a, b) => a + b, 0) / rated.length : null,
     };
-  }, [entries]);
+  }, [filtered]);
 
   /* ---- set the map up once ---- */
   useEffect(() => {
@@ -92,9 +98,8 @@ export default function MapView({ entries }: { entries: Entry[] }) {
       });
       mapRef.current = map;
 
-      // Dark greyscale basemap, so the coloured pins are the only thing
-      // competing for attention.
-      L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+      // Pale basemap: the map is background, the pins carry the meaning.
+      L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
         attribution: "&copy; OpenStreetMap &copy; CARTO",
         subdomains: "abcd",
         maxZoom: 20,
@@ -110,6 +115,8 @@ export default function MapView({ entries }: { entries: Entry[] }) {
       }
 
       map.on("zoomend", () => setZoom(map.getZoom()));
+      // Clicking empty map dismisses the card, the way a map app behaves.
+      map.on("click", () => setSelectedId(null));
       setZoom(map.getZoom());
       setReady(true);
     })();
@@ -151,19 +158,26 @@ export default function MapView({ entries }: { entries: Entry[] }) {
 
     for (const e of filtered) {
       const isSelected = e.id === selectedId;
-      const size = isSelected ? PIN_SELECTED_SIZE : PIN_SIZE;
       L.marker([e.lat, e.lng], {
         icon: L.divIcon({
           className: "pin-marker",
           html: pinHtml(e, isSelected),
-          iconSize: [size, size],
-          iconAnchor: [size / 2, size / 2],
+          iconSize: [PIN_BOX_W, PIN_BOX_H],
+          // Anchor on the pin's point rather than the middle of the box,
+          // so the label hanging below doesn't shift the pin off its spot.
+          iconAnchor: [PIN_BOX_W / 2, PIN_TIP_Y],
         }),
         zIndexOffset: isSelected ? 1000 : 0,
       })
-        .on("click", () => setSelectedId(e.id))
+        // Leaflet would otherwise bubble this to the map's own click handler
+        // and immediately clear the selection we just made.
+        .on("click", (ev: { originalEvent?: Event }) => {
+          ev.originalEvent?.stopPropagation();
+          select(e);
+        })
         .addTo(layer);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, filtered, selectedId, zoom]);
 
   // A place that's been filtered out shouldn't stay selected behind the card.
@@ -175,9 +189,7 @@ export default function MapView({ entries }: { entries: Entry[] }) {
 
   function select(entry: Entry) {
     setSelectedId(entry.id);
-    const map = mapRef.current;
-    if (!map) return;
-    map.flyTo([entry.lat, entry.lng], Math.max(map.getZoom(), 15), { duration: 0.8 });
+    mapRef.current?.panTo([entry.lat, entry.lng], { animate: true, duration: 0.4 });
   }
 
   function fitAll() {
@@ -196,7 +208,21 @@ export default function MapView({ entries }: { entries: Entry[] }) {
     <div className="relative h-full w-full">
       <div ref={containerRef} className="h-full w-full" />
 
-      <CategoryRail value={filter} counts={counts} onChange={setFilter} />
+      {/* What you're looking at, top left under the bar */}
+      <div className="absolute left-4 top-[68px] z-[600] panel px-3 py-2">
+        <p className="field-label">{filterLabel(filter)}</p>
+        <p className="font-display text-2xl text-ink leading-none mt-0.5">
+          {stats.places}
+          {stats.average !== null && (
+            <span className="font-mono text-[11px] text-muted ml-2">
+              avg {formatRating(stats.average)}
+            </span>
+          )}
+        </p>
+        <p className="font-mono text-[9px] tracking-[0.14em] uppercase text-muted mt-1">
+          {stats.cities} {stats.cities === 1 ? "city" : "cities"}
+        </p>
+      </div>
 
       {/* Zoom and recentre, down the right edge */}
       <div className="absolute right-4 top-1/2 -translate-y-1/2 z-[600] flex flex-col gap-1.5">
@@ -204,7 +230,7 @@ export default function MapView({ entries }: { entries: Entry[] }) {
           type="button"
           onClick={fitAll}
           aria-label="Show everything"
-          className="w-9 h-9 rounded-sm bg-accent hover:bg-accent-hot text-cream flex items-center justify-center text-sm"
+          className="w-9 h-9 rounded-lg bg-accent hover:bg-accent-hot text-white flex items-center justify-center text-sm shadow-md"
         >
           ⌖
         </button>
@@ -212,7 +238,7 @@ export default function MapView({ entries }: { entries: Entry[] }) {
           type="button"
           onClick={() => mapRef.current?.zoomIn()}
           aria-label="Zoom in"
-          className="panel w-9 h-9 flex items-center justify-center text-cream hover:border-muted text-lg leading-none"
+          className="panel w-9 h-9 flex items-center justify-center text-ink text-lg leading-none"
         >
           +
         </button>
@@ -220,50 +246,35 @@ export default function MapView({ entries }: { entries: Entry[] }) {
           type="button"
           onClick={() => mapRef.current?.zoomOut()}
           aria-label="Zoom out"
-          className="panel w-9 h-9 flex items-center justify-center text-cream hover:border-muted text-lg leading-none"
+          className="panel w-9 h-9 flex items-center justify-center text-ink text-lg leading-none"
         >
           −
         </button>
       </div>
 
-      {/* Detail card for the selected place */}
+      {/* The name and the write-ups only exist here — clicking a pin is the
+          only way to find out what a place is called. */}
       {selected && (
-        <div className="absolute z-[600] left-4 right-4 bottom-[120px] md:left-auto md:right-4 md:bottom-[124px] md:w-[300px]">
+        <div className="absolute z-[600] left-4 right-4 bottom-[112px] md:left-auto md:right-4 md:bottom-[110px] md:w-[300px]">
           <PlaceDetail entry={selected} onClose={() => setSelectedId(null)} />
         </div>
       )}
 
-      {/* Stats, then the strip of places */}
-      <div className="absolute inset-x-0 bottom-0 z-[600] pointer-events-none">
-        <div className="flex items-end gap-3 px-4 pb-4 pt-10 bg-gradient-to-t from-ink via-ink/80 to-transparent">
-          <div className="panel px-3.5 py-2.5 shrink-0 pointer-events-auto hidden sm:block">
-            <p className="field-label">Places</p>
-            <p className="font-display text-3xl text-cream leading-none mt-0.5">{stats.places}</p>
-            <p className="font-mono text-[9px] tracking-[0.14em] uppercase text-muted mt-1.5">
-              {stats.cities} {stats.cities === 1 ? "city" : "cities"}
-              {stats.average !== null && ` · avg ${formatRating(stats.average)}`}
+      {/* Category bar along the bottom */}
+      <div className="absolute inset-x-0 bottom-0 z-[600] flex justify-center pb-4 px-4 pointer-events-none">
+        <CategoryBar value={filter} counts={counts} onChange={setFilter} />
+      </div>
+
+      {filtered.length === 0 && (
+        <div className="absolute inset-0 z-[500] flex items-center justify-center pointer-events-none">
+          <div className="panel px-5 py-4 text-center max-w-xs">
+            <p className="field-label">Nothing here yet</p>
+            <p className="font-body text-sm text-ink mt-1.5">
+              Add somewhere you&rsquo;ve eaten and it&rsquo;ll appear on the map.
             </p>
           </div>
-
-          <div className="flex gap-2.5 overflow-x-auto no-scrollbar pointer-events-auto flex-1 min-w-0 pb-0.5">
-            {filtered.map((e) => (
-              <PlaceCard
-                key={e.id}
-                entry={e}
-                selected={e.id === selectedId}
-                onSelect={select}
-              />
-            ))}
-            {filtered.length === 0 && (
-              <div className="panel px-4 py-3">
-                <p className="font-body text-sm text-muted">
-                  Nothing here yet. Add the first one.
-                </p>
-              </div>
-            )}
-          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

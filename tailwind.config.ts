@@ -5,21 +5,20 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Dark charcoal chrome with a warm terracotta accent. Everything
-        // floats over the map, so the surfaces are deliberately close in
-        // value — the accent is the only loud colour.
-        ink: "#17110F",
-        surface: "#221B18",
-        "surface-2": "#2E2521",
-        line: "#3A302B",
+        // A pale map with white cards floating on it. The map is the quietest
+        // thing on screen so the coloured pins carry all the meaning.
+        paper: "#EDEAE4",
+        card: "#FFFFFF",
+        "card-2": "#F4F1EB",
+        line: "#DFD8CC",
         accent: "#C4553D",
-        "accent-hot": "#D9674C",
-        cream: "#F0E9E1",
-        muted: "#8C8078",
-        // One colour per kind of place, so pins and dots read without a legend
-        cafe: "#7D8B5A",
+        "accent-hot": "#A8442F",
+        ink: "#2B2724",
+        muted: "#7C736A",
+        // One colour per kind of place, dark enough to carry white text
+        cafe: "#5F7A4A",
         restaurant: "#C4553D",
-        cooking: "#D9B26A",
+        cooking: "#B07C2B",
       },
       fontFamily: {
         display: ["var(--font-newsreader)", "serif"],

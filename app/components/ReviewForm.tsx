@@ -40,7 +40,7 @@ export default function ReviewForm({
           rememberWho(person);
           setOpen(true);
         }}
-        className="font-mono text-[10px] tracking-[0.14em] uppercase text-muted hover:text-cream border-b border-dashed border-line self-start"
+        className="font-mono text-[10px] tracking-[0.14em] uppercase text-muted hover:text-ink border-b border-dashed border-line self-start"
       >
         {hasExisting ? "Edit" : `Write ${PERSON_LABELS[person]}’s`}
       </button>
@@ -83,7 +83,7 @@ export default function ReviewForm({
         <button
           type="button"
           onClick={() => setOpen(false)}
-          className="font-mono text-[10px] tracking-[0.14em] uppercase text-muted hover:text-cream mt-3"
+          className="font-mono text-[10px] tracking-[0.14em] uppercase text-muted hover:text-ink mt-3"
         >
           Cancel
         </button>

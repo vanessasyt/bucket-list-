@@ -36,7 +36,7 @@ export default function DeleteEntry({ entryId, title }: { entryId: number; title
 
   return (
     <div className="border border-accent/50 bg-accent/10 rounded-sm p-4">
-      <p className="font-body text-sm text-cream">
+      <p className="font-body text-sm text-ink">
         Delete <span className="italic">{title}</span>? Its photos, ratings and both write-ups go
         with it, and there is no undo.
       </p>
@@ -48,7 +48,7 @@ export default function DeleteEntry({ entryId, title }: { entryId: number; title
         <button
           type="button"
           onClick={() => setConfirming(false)}
-          className="font-mono text-[10px] tracking-[0.14em] uppercase text-muted hover:text-cream"
+          className="font-mono text-[10px] tracking-[0.14em] uppercase text-muted hover:text-ink"
         >
           Keep it
         </button>

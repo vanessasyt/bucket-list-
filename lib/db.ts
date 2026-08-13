@@ -40,6 +40,7 @@ function ensureSchema() {
           date TEXT NOT NULL,
           city TEXT NOT NULL,
           place_name TEXT,
+          cuisine TEXT,
           lat DOUBLE PRECISION NOT NULL,
           lng DOUBLE PRECISION NOT NULL,
           photos TEXT[] NOT NULL DEFAULT '{}',
@@ -51,6 +52,12 @@ function ensureSchema() {
           created_at TIMESTAMPTZ NOT NULL DEFAULT now()
         );
       `);
+      // CREATE TABLE IF NOT EXISTS does nothing when the table already
+      // exists in an older shape, so every column added after the first
+      // release needs its own ALTER. Leaving this out is what silently
+      // broke the map once already.
+      await p.query(`ALTER TABLE entries ADD COLUMN IF NOT EXISTS cuisine TEXT;`);
+
       await p.query(`
         CREATE TABLE IF NOT EXISTS bucket_items (
           id SERIAL PRIMARY KEY,
@@ -77,6 +84,7 @@ function toEntry(r: any): Entry {
     date: r.date,
     city: r.city,
     placeName: r.place_name,
+    cuisine: r.cuisine ?? null,
     lat: Number(r.lat),
     lng: Number(r.lng),
     photos: r.photos ?? [],
@@ -156,6 +164,7 @@ export interface NewEntry {
   date: string;
   city: string;
   placeName: string | null;
+  cuisine: string | null;
   lat: number;
   lng: number;
   photos: string[];
@@ -175,9 +184,9 @@ export async function createEntry(input: NewEntry): Promise<Entry> {
   const isVanessa = input.author === "vanessa";
   const { rows } = await p.query(
     `INSERT INTO entries
-       (title, type, date, city, place_name, lat, lng, photos, cook,
+       (title, type, date, city, place_name, cuisine, lat, lng, photos, cook,
         vanessa_rating, vanessa_review, tudor_rating, tudor_review)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
      RETURNING *;`,
     [
       input.title,
@@ -185,6 +194,7 @@ export async function createEntry(input: NewEntry): Promise<Entry> {
       input.date,
       input.city,
       input.placeName,
+      input.cuisine,
       input.lat,
       input.lng,
       input.photos,
@@ -240,6 +250,7 @@ export interface EntryEdit {
   date: string;
   city: string;
   placeName: string | null;
+  cuisine: string | null;
   lat: number;
   lng: number;
   photos: string[];
@@ -253,7 +264,7 @@ export async function updateEntry(id: number, input: EntryEdit): Promise<void> {
   await getPool().query(
     `UPDATE entries SET
        title = $2, type = $3, date = $4, city = $5, place_name = $6,
-       lat = $7, lng = $8, photos = $9, cook = $10
+       cuisine = $7, lat = $8, lng = $9, photos = $10, cook = $11
      WHERE id = $1;`,
     [
       id,
@@ -262,6 +273,7 @@ export async function updateEntry(id: number, input: EntryEdit): Promise<void> {
       input.date,
       input.city,
       input.placeName,
+      input.cuisine,
       input.lat,
       input.lng,
       input.photos,

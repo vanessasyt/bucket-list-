@@ -52,7 +52,7 @@ export default function PlaceDetail({
           type="button"
           onClick={onClose}
           aria-label="Close"
-          className="absolute top-1.5 right-1.5 w-6 h-6 rounded-sm bg-ink/75 text-muted hover:text-cream text-sm leading-none"
+          className="absolute top-1.5 right-1.5 w-6 h-6 rounded-sm bg-white/85 text-muted hover:text-ink text-sm leading-none"
         >
           ×
         </button>
@@ -60,10 +60,10 @@ export default function PlaceDetail({
 
       <div className="p-3.5">
         <p className="font-mono text-[9px] tracking-[0.2em] uppercase" style={{ color: style.hex }}>
-          {TYPE_LABELS_ONE[entry.type]}
+          {entry.cuisine || TYPE_LABELS_ONE[entry.type]}
           {entry.cook && ` · ${PERSON_LABELS[entry.cook]} cooked`}
         </p>
-        <h2 className="font-display text-xl text-cream leading-tight mt-1">{entry.title}</h2>
+        <h2 className="font-display text-xl text-ink leading-tight mt-1">{entry.title}</h2>
         <p className="font-body text-[13px] text-muted mt-0.5 leading-snug">
           {entry.placeName ? `${entry.placeName}, ` : ""}
           {entry.city}
@@ -78,7 +78,7 @@ export default function PlaceDetail({
             return (
               <div key={p}>
                 <p className="field-label">{PERSON_LABELS[p]}</p>
-                <p className="font-mono text-lg text-cream mt-0.5">
+                <p className="font-mono text-lg text-ink mt-0.5">
                   {rating === null ? (
                     <span className="text-muted text-sm">—</span>
                   ) : (

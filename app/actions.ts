@@ -12,7 +12,7 @@ import {
   addPhotos,
   updateEntry,
 } from "@/lib/db";
-import { isEntryType, isPerson, type EntryType, type Person } from "@/lib/types";
+import { hasCuisine, isEntryType, isPerson, type EntryType, type Person } from "@/lib/types";
 
 export interface ActionState {
   error?: string;
@@ -45,6 +45,7 @@ interface PlaceFields {
   date: string;
   city: string;
   placeName: string | null;
+  cuisine: string | null;
   lat: number;
   lng: number;
   photos: string[];
@@ -78,6 +79,11 @@ function placeFrom(formData: FormData): PlaceFields | { error: string } {
     date,
     city: String(formData.get("city") || "").trim() || "Unknown",
     placeName: String(formData.get("placeName") || "").trim() || null,
+    // Dropped for home-cooked, so switching the kind can't leave a stale
+    // cuisine behind on the entry.
+    cuisine: hasCuisine(type)
+      ? String(formData.get("cuisine") || "").trim() || null
+      : null,
     lat,
     lng,
     photos: photosFrom(formData),

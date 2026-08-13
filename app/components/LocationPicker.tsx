@@ -98,7 +98,7 @@ export default function LocationPicker({
       );
       mapRef.current = map;
 
-      L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+      L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
         attribution: "&copy; OpenStreetMap &copy; CARTO",
         subdomains: "abcd",
         maxZoom: 20,
@@ -165,13 +165,13 @@ export default function LocationPicker({
       </div>
 
       {hits.length > 0 && (
-        <ul className="border border-line rounded-sm bg-surface mt-1.5 divide-y divide-line max-h-44 overflow-y-auto">
+        <ul className="border border-line rounded-sm bg-card mt-1.5 divide-y divide-line max-h-44 overflow-y-auto">
           {hits.map((hit, i) => (
             <li key={i}>
               <button
                 type="button"
                 onClick={() => chooseHit(hit)}
-                className="w-full text-left px-3 py-2 font-body text-sm text-cream hover:bg-surface-2"
+                className="w-full text-left px-3 py-2 font-body text-sm text-ink hover:bg-card-2"
               >
                 {hit.display_name}
               </button>

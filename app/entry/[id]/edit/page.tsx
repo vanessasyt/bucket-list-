@@ -23,12 +23,12 @@ export default async function EditEntryPage({ params }: { params: { id: string }
           <div className="animate-rise">
             <Link
               href={`/entry/${entry.id}`}
-              className="font-mono text-[10px] tracking-[0.16em] uppercase text-muted hover:text-cream"
+              className="font-mono text-[10px] tracking-[0.16em] uppercase text-muted hover:text-ink"
             >
               ← Back
             </Link>
             <p className="field-label mt-3">Editing</p>
-            <h1 className="font-display text-4xl text-cream leading-tight">{entry.title}</h1>
+            <h1 className="font-display text-4xl text-ink leading-tight">{entry.title}</h1>
             <p className="font-body text-sm text-muted mt-1.5">
               Ratings and write-ups are edited on the entry itself — this is the place, the date,
               the photos.

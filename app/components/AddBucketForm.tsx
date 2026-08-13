@@ -62,8 +62,8 @@ export default function AddBucketForm() {
             aria-pressed={type === t}
             className={`font-mono text-[10px] tracking-[0.14em] uppercase px-2.5 py-1 rounded-sm border transition-colors ${
               type === t
-                ? "bg-accent/15 border-accent text-cream"
-                : "border-line text-muted hover:text-cream hover:border-muted"
+                ? "bg-accent/15 border-accent text-ink"
+                : "border-line text-muted hover:text-ink hover:border-muted"
             }`}
           >
             <span

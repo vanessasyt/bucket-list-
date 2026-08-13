@@ -100,7 +100,7 @@ export default function PhotoUploader({
               }`}
             />
             {!s.url && !s.error && (
-              <span className="absolute inset-0 flex items-center justify-center font-mono text-[8px] uppercase tracking-widest text-cream">
+              <span className="absolute inset-0 flex items-center justify-center font-mono text-[8px] uppercase tracking-widest text-ink">
                 …
               </span>
             )}
@@ -113,7 +113,7 @@ export default function PhotoUploader({
               type="button"
               onClick={() => setSlots((prev) => prev.filter((x) => x.id !== s.id))}
               aria-label="Remove photo"
-              className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-accent text-cream text-[10px] leading-none flex items-center justify-center"
+              className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-accent text-white text-[10px] leading-none flex items-center justify-center"
             >
               ×
             </button>
@@ -123,7 +123,7 @@ export default function PhotoUploader({
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
-          className={`${box} shrink-0 border border-dashed border-line rounded-sm flex flex-col items-center justify-center text-muted hover:text-cream hover:border-muted transition-colors`}
+          className={`${box} shrink-0 border border-dashed border-line rounded-sm flex flex-col items-center justify-center text-muted hover:text-ink hover:border-muted transition-colors`}
         >
           <span className="text-lg leading-none">+</span>
           <span className="font-mono text-[8px] tracking-[0.14em] uppercase mt-0.5">Photo</span>

@@ -27,7 +27,7 @@ export default async function AddPage({
         <div className="mx-auto max-w-2xl px-4 sm:px-5 py-8">
           <div className="animate-rise">
             <p className="field-label">New entry</p>
-            <h1 className="font-display text-4xl sm:text-5xl text-cream leading-tight">
+            <h1 className="font-display text-4xl sm:text-5xl text-ink leading-tight">
               Add a place
             </h1>
             {bucketItem && (

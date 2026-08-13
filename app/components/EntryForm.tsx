@@ -5,6 +5,7 @@ import { useFormState, useFormStatus } from "react-dom";
 import { createEntryAction, updateEntryAction, type ActionState } from "../actions";
 import {
   ENTRY_TYPES,
+  hasCuisine,
   PEOPLE,
   PERSON_LABELS,
   TYPE_LABELS,
@@ -43,8 +44,8 @@ function Choice({
       aria-pressed={active}
       className={`font-mono text-[10px] tracking-[0.14em] uppercase py-2 px-2 rounded-sm border transition-colors ${
         active
-          ? "bg-accent/15 border-accent text-cream"
-          : "border-line text-muted hover:text-cream hover:border-muted"
+          ? "bg-accent/15 border-accent text-ink"
+          : "border-line text-muted hover:text-ink hover:border-muted"
       }`}
     >
       {children}
@@ -93,6 +94,7 @@ export default function EntryForm({
         }
       : null
   );
+  const [cuisine, setCuisine] = useState(entry?.cuisine ?? "");
   const [cityOverride, setCityOverride] = useState(entry?.city ?? "");
   const [photos, setPhotos] = useState<string[]>(entry?.photos ?? []);
   const [uploading, setUploading] = useState(false);
@@ -114,6 +116,7 @@ export default function EntryForm({
     date,
     city: city || "—",
     placeName: loc?.placeName ?? null,
+    cuisine: hasCuisine(type) ? cuisine || null : null,
     lat: loc?.lat ?? 0,
     lng: loc?.lng ?? 0,
     photos,
@@ -187,6 +190,24 @@ export default function EntryForm({
             required
           />
         </label>
+
+        {/* Sits beside the name because it reads as part of it: the label
+            under the pin on the map. */}
+        {hasCuisine(type) ? (
+          <label className="block">
+            <span className="field-label">Cuisine</span>
+            <input
+              name="cuisine"
+              value={cuisine}
+              onChange={(e) => setCuisine(e.target.value)}
+              className="input mt-1.5"
+              placeholder="Brunch, Italian, Korean…"
+            />
+          </label>
+        ) : (
+          <div className="hidden sm:block" aria-hidden />
+        )}
+
         <label className="block">
           <span className="field-label">When</span>
           <input

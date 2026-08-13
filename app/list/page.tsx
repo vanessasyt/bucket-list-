@@ -41,12 +41,12 @@ export default async function ListPage() {
           <div className="flex items-end justify-between gap-4 animate-rise">
             <div>
               <p className="field-label">The wishlist</p>
-              <h1 className="font-display text-4xl sm:text-5xl text-cream leading-tight">
+              <h1 className="font-display text-4xl sm:text-5xl text-ink leading-tight">
                 Want to try
               </h1>
             </div>
             <div className="text-right shrink-0">
-              <p className="font-display text-3xl text-cream leading-none">
+              <p className="font-display text-3xl text-ink leading-none">
                 {done.length}
                 <span className="text-muted">/{food.length}</span>
               </p>
@@ -54,7 +54,7 @@ export default async function ListPage() {
             </div>
           </div>
 
-          <div className="h-1 bg-surface-2 rounded-full mt-3 overflow-hidden">
+          <div className="h-1 bg-card-2 rounded-full mt-3 overflow-hidden">
             <div
               className="h-full bg-accent transition-all duration-500"
               style={{ width: `${pct}%` }}
@@ -70,7 +70,7 @@ export default async function ListPage() {
               <section key={type} className="mt-8">
                 <div className="flex items-center gap-2.5 mb-2.5">
                   <span className={`w-2 h-2 rounded-full ${TYPE_STYLE[type].bg}`} />
-                  <h2 className="font-mono text-[11px] tracking-[0.2em] uppercase text-cream">
+                  <h2 className="font-mono text-[11px] tracking-[0.2em] uppercase text-ink">
                     {TYPE_LABELS[type]}
                   </h2>
                   <span className="font-mono text-[10px] text-muted">{groupItems.length}</span>
@@ -81,13 +81,13 @@ export default async function ListPage() {
                   {groupItems.map((item) => (
                     <li
                       key={item.id}
-                      className="group flex items-center gap-3 border border-line bg-surface rounded-sm px-3.5 py-2.5"
+                      className="group flex items-center gap-3 border border-line bg-card rounded-sm px-3.5 py-2.5"
                     >
                       <span
                         className={`w-3.5 h-3.5 rounded-full border ${TYPE_STYLE[item.type].border} shrink-0 opacity-60`}
                       />
                       <div className="min-w-0 flex-1">
-                        <p className="font-body text-[15px] text-cream leading-snug">
+                        <p className="font-body text-[15px] text-ink leading-snug">
                           {item.title}
                         </p>
                         <p className="font-mono text-[9px] tracking-[0.14em] uppercase text-muted mt-0.5">
@@ -98,7 +98,7 @@ export default async function ListPage() {
 
                       <Link
                         href={`/add?bucket=${item.id}`}
-                        className="font-mono text-[10px] tracking-[0.14em] uppercase text-muted hover:text-cream border-b border-dashed border-line shrink-0"
+                        className="font-mono text-[10px] tracking-[0.14em] uppercase text-muted hover:text-ink border-b border-dashed border-line shrink-0"
                       >
                         We went
                       </Link>
@@ -129,7 +129,7 @@ export default async function ListPage() {
           {done.length > 0 && (
             <section className="mt-10">
               <div className="flex items-center gap-2.5 mb-3">
-                <h2 className="font-mono text-[11px] tracking-[0.2em] uppercase text-cream">
+                <h2 className="font-mono text-[11px] tracking-[0.2em] uppercase text-ink">
                   Been
                 </h2>
                 <div className="flex-1 h-px bg-line" />
@@ -142,10 +142,10 @@ export default async function ListPage() {
                     <li key={item.id}>
                       <Link
                         href={entry ? `/entry/${entry.id}` : "/list"}
-                        className="flex items-center gap-3 border border-line bg-surface/50 rounded-sm px-3.5 py-2.5 hover:bg-surface"
+                        className="flex items-center gap-3 border border-line bg-card/50 rounded-sm px-3.5 py-2.5 hover:bg-card"
                       >
                         <span
-                          className={`w-3.5 h-3.5 rounded-full ${TYPE_STYLE[item.type].bg} shrink-0 flex items-center justify-center text-ink text-[9px]`}
+                          className={`w-3.5 h-3.5 rounded-full ${TYPE_STYLE[item.type].bg} shrink-0 flex items-center justify-center text-white text-[9px]`}
                         >
                           ✓
                         </span>

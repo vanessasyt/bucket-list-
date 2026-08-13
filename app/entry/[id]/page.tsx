@@ -48,7 +48,7 @@ export default async function EntryPage({ params }: { params: { id: string } }) 
           <div className="relative h-48 sm:h-64 w-full overflow-hidden">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={cover} alt="" className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/40 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-paper via-paper/40 to-transparent" />
           </div>
         ) : (
           <div className="h-20" style={{ backgroundColor: `${style.hex}1A` }} />
@@ -59,16 +59,17 @@ export default async function EntryPage({ params }: { params: { id: string } }) 
             <div className="min-w-0">
               <Link
                 href="/"
-                className="font-mono text-[10px] tracking-[0.16em] uppercase text-muted hover:text-cream"
+                className="font-mono text-[10px] tracking-[0.16em] uppercase text-muted hover:text-ink"
               >
                 ← Map
               </Link>
 
               <p className="field-label mt-3" style={{ color: style.hex }}>
                 {TYPE_LABELS_ONE[entry.type]}
+                {entry.cuisine && ` · ${entry.cuisine}`}
                 {entry.cook && ` · ${PERSON_LABELS[entry.cook]} cooked`}
               </p>
-              <h1 className="font-display text-4xl sm:text-5xl text-cream leading-tight mt-1">
+              <h1 className="font-display text-4xl sm:text-5xl text-ink leading-tight mt-1">
                 {entry.title}
               </h1>
               <p className="font-body text-muted mt-1.5">
@@ -85,7 +86,7 @@ export default async function EntryPage({ params }: { params: { id: string } }) 
               {avg !== null && (
                 <div className="text-right">
                   <p className="field-label">Between us</p>
-                  <p className="font-display text-3xl text-cream leading-none mt-0.5">
+                  <p className="font-display text-3xl text-ink leading-none mt-0.5">
                     {formatRating(avg)}
                     <span className="text-muted text-base">/10</span>
                   </p>
@@ -120,7 +121,7 @@ export default async function EntryPage({ params }: { params: { id: string } }) 
               return (
                 <section key={p} className="panel p-4 flex flex-col">
                   <div className="flex items-baseline justify-between gap-2">
-                    <h2 className="font-display text-2xl text-cream">{PERSON_LABELS[p]}</h2>
+                    <h2 className="font-display text-2xl text-ink">{PERSON_LABELS[p]}</h2>
                     {rating !== null && (
                       <span className="font-mono text-lg font-semibold" style={{ color: style.hex }}>
                         {formatRating(rating)}
@@ -132,7 +133,7 @@ export default async function EntryPage({ params }: { params: { id: string } }) 
                   <div className="h-px bg-line my-3" />
 
                   {review ? (
-                    <p className="font-body text-[15px] leading-relaxed text-cream whitespace-pre-wrap mb-3">
+                    <p className="font-body text-[15px] leading-relaxed text-ink whitespace-pre-wrap mb-3">
                       {review}
                     </p>
                   ) : (

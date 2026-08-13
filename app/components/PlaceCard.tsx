@@ -54,9 +54,9 @@ export default function PlaceCard({
       <Thumb entry={entry} size="w-12 h-12" />
 
       <div className="min-w-0 flex-1">
-        <p className="font-display text-[15px] text-cream leading-tight truncate">{entry.title}</p>
+        <p className="font-display text-[15px] text-ink leading-tight truncate">{entry.title}</p>
         <p className="font-mono text-[9px] tracking-[0.12em] uppercase text-muted mt-1 truncate">
-          {entry.placeName ? `${entry.placeName} · ` : ""}
+          {entry.cuisine ? `${entry.cuisine} · ` : ""}
           {entry.city}
         </p>
       </div>

@@ -29,7 +29,7 @@ export default function AddPhotos({ entryId }: { entryId: number }) {
     return (
       <button
         onClick={() => setOpen(true)}
-        className="font-mono text-[10px] tracking-[0.14em] uppercase text-muted hover:text-cream border-b border-dashed border-line"
+        className="font-mono text-[10px] tracking-[0.14em] uppercase text-muted hover:text-ink border-b border-dashed border-line"
       >
         + Add photos
       </button>

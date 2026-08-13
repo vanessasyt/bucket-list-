@@ -33,6 +33,11 @@ export function isEntryType(value: unknown): value is EntryType {
   return value === "cafe" || value === "restaurant" || value === "cooking";
 }
 
+// Where you eat has a cuisine; what you cook is already named by the dish.
+export function hasCuisine(type: EntryType): boolean {
+  return type === "cafe" || type === "restaurant";
+}
+
 // Tailwind class fragments per type, kept in one place so the pin, the card
 // and the list dot can never drift apart.
 export const TYPE_STYLE: Record<EntryType, { text: string; border: string; bg: string; hex: string }> =
@@ -64,6 +69,10 @@ export interface Entry {
   date: string; // "YYYY-MM-DD"
   city: string;
   placeName: string | null;
+  // Free text — "Italian", "Brunch", "Korean BBQ". Shown under the pin on
+  // the map, where it's the only clue to a place before you click it.
+  // Cafés and restaurants only; a home-cooked dish names itself.
+  cuisine: string | null;
   lat: number;
   lng: number;
   photos: string[];

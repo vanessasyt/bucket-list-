@@ -66,8 +66,8 @@ export default function WhoPicker({
             aria-pressed={value === p}
             className={`font-mono text-[11px] tracking-[0.14em] uppercase px-3.5 py-2 rounded-sm border transition-colors ${
               value === p
-                ? "border-accent bg-accent/15 text-cream"
-                : "border-line text-muted hover:text-cream hover:border-muted"
+                ? "border-accent bg-accent/15 text-ink"
+                : "border-line text-muted hover:text-ink hover:border-muted"
             }`}
           >
             {PERSON_LABELS[p]}
