@@ -16,7 +16,6 @@ import {
 } from "@/lib/types";
 import LocationPicker, { type PickedLocation } from "./LocationPicker";
 import PhotoUploader from "./PhotoUploader";
-import PlaceCard from "./PlaceCard";
 import WhoPicker from "./WhoPicker";
 
 function SubmitButton({ disabled, label }: { disabled: boolean; label: string }) {
@@ -98,7 +97,6 @@ export default function EntryForm({
   const [cityOverride, setCityOverride] = useState(entry?.city ?? "");
   const [photos, setPhotos] = useState<string[]>(entry?.photos ?? []);
   const [uploading, setUploading] = useState(false);
-  const [rating, setRating] = useState("");
 
   const handlePhotos = useCallback((urls: string[], isUploading: boolean) => {
     setPhotos(urls);
@@ -106,26 +104,6 @@ export default function EntryForm({
   }, []);
 
   const city = cityOverride || loc?.city || defaultCity || "";
-
-  // A stand-in Entry so the card in the preview is literally the same
-  // component that will appear in the strip on the map.
-  const preview: Entry = {
-    id: entry?.id ?? -1,
-    title: title || "Untitled",
-    type,
-    date,
-    city: city || "—",
-    placeName: loc?.placeName ?? null,
-    cuisine: hasCuisine(type) ? cuisine || null : null,
-    lat: loc?.lat ?? 0,
-    lng: loc?.lng ?? 0,
-    photos,
-    cook: type === "cooking" ? cook : null,
-    vanessaRating: rating ? Number(rating) : null,
-    vanessaReview: null,
-    tudorRating: null,
-    tudorReview: null,
-  };
 
   return (
     <form action={formAction} className="space-y-6">
@@ -144,11 +122,6 @@ export default function EntryForm({
           {state.error}
         </p>
       )}
-
-      {/* How this place will look on the map */}
-      <div className="flex justify-center py-1">
-        <PlaceCard entry={preview} selected onSelect={() => {}} />
-      </div>
 
       <div>
         <p className="field-label mb-2">What kind</p>
@@ -256,8 +229,6 @@ export default function EntryForm({
               step="0.5"
               min="0"
               max="10"
-              value={rating}
-              onChange={(e) => setRating(e.target.value)}
               className="input mt-1.5 sm:w-32"
             />
           </label>
