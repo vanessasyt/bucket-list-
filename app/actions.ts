@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { put } from "@vercel/blob";
 import {
   addBucketItem,
   createEntry,
@@ -10,7 +11,6 @@ import {
   updateBucketItem,
   saveReview,
   addPhotos,
-  savePhoto,
   updateEntry,
 } from "@/lib/db";
 import { hasCuisine, isEntryType, isPerson, type EntryType, type Person } from "@/lib/types";
@@ -113,6 +113,11 @@ export interface UploadResult {
   error?: string;
 }
 
+// New photos go to Vercel Blob and the entry stores the public URL it
+// returns. Photos added before this change are still rows in the `photos`
+// table and still have /api/photo/<id> URLs; that route stays in place so
+// they keep loading. Nothing needs migrating — the two kinds of URL sit
+// side by side in the same photos array.
 export async function uploadPhoto(formData: FormData): Promise<UploadResult> {
   const file = formData.get("file");
   if (!(file instanceof File)) return { ok: false, error: "No file received." };
@@ -122,11 +127,23 @@ export async function uploadPhoto(formData: FormData): Promise<UploadResult> {
   }
 
   try {
-    const bytes = Buffer.from(await file.arrayBuffer());
-    const id = await savePhoto(bytes, file.type);
-    return { ok: true, url: `/api/photo/${id}` };
+    const blob = await put(`photos/${file.name || "photo.jpg"}`, file, {
+      access: "public",
+      // Without this, two photos with the same filename collide.
+      addRandomSuffix: true,
+      contentType: file.type,
+    });
+    return { ok: true, url: blob.url };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
+    // The usual cause is no Blob store connected, which surfaces as a
+    // missing-token error and is otherwise cryptic in the UI.
+    if (/token/i.test(message)) {
+      return {
+        ok: false,
+        error: "Blob storage isn't set up — add a Blob store in Vercel and redeploy.",
+      };
+    }
     return { ok: false, error: message.slice(0, 140) };
   }
 }
