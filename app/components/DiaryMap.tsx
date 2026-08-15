@@ -16,9 +16,14 @@ export default async function DiaryMap({ domain }: { domain: Domain }) {
 
   const todo = items.filter((i) => !i.entryId);
 
+  // Food is the left page and activities the right, so each turns in from
+  // its own side of the spine — going across and coming back are mirror
+  // images rather than the same animation played twice.
+  const turn = domain === "food" ? "animate-page-turn-left" : "animate-page-turn-right";
+
   return (
     <div className="h-screen flex flex-col overflow-hidden">
-      <div className="flex-1 min-h-0 relative animate-page-turn">
+      <div className={`flex-1 min-h-0 relative ${turn}`}>
         <Nav active="map" floating domain={domain} />
         <MapView entries={entries} domain={domain} todo={todo} listTotal={items.length} />
       </div>

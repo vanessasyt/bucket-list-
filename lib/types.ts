@@ -132,8 +132,12 @@ export function hasCook(type: EntryType): boolean {
 export const DOMAIN_COPY: Record<
   Domain,
   {
-    name: string; // the flip tab
+    name: string; // the half's name in the switch
     wordmark: string;
+    // The colour this half answers to, used to fill its side of the switch
+    // so the two feel like different places rather than one page with the
+    // heading swapped.
+    hex: string;
     home: string;
     list: string;
     addHref: string;
@@ -151,6 +155,7 @@ export const DOMAIN_COPY: Record<
   food: {
     name: "Food",
     wordmark: "Food Diary",
+    hex: "#3E7B52",
     home: "/",
     list: "/list",
     addHref: "/add",
@@ -167,6 +172,7 @@ export const DOMAIN_COPY: Record<
   activity: {
     name: "Activities",
     wordmark: "Things We Did",
+    hex: "#6455A8",
     home: "/activities",
     list: "/activities/list",
     addHref: "/add?domain=activity",

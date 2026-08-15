@@ -3,10 +3,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   DOMAIN_COPY,
+  KINDS,
   RATING_BANDS,
   avgRating,
   hasKinds,
   hasLocation,
+  ratingColour,
   type BucketItem,
   type Domain,
   type Entry,
@@ -28,6 +30,11 @@ import {
 // Zoomed out past this, individual places collapse into one marker per city
 // — the overview. Zoom in and they separate again.
 const CITY_ZOOM_THRESHOLD = 9;
+
+// How much of the world one outing colours in, in metres. Big enough to
+// read as an area rather than a dot at the zoom you actually browse at,
+// small enough that two things in the same town stay distinct.
+const DONE_RADIUS_M = 550;
 
 interface CityGroup {
   city: string;
@@ -205,6 +212,29 @@ export default function MapView({
       return;
     }
 
+    // Ground we've covered. On the colourless half this is the only colour
+    // on the map, so somewhere you've been reads as a patch of the world
+    // filled in rather than a marker sitting on top of it. Radius is in
+    // metres, so the patch belongs to the place and grows as you zoom in
+    // rather than floating at a fixed screen size.
+    if (!hasKinds(domain)) {
+      for (const e of located) {
+        const avg = avgRating(e);
+        // Unrated still counts as covered — it just takes the kind's own
+        // colour instead of a score colour, since white would be invisible.
+        const c = avg === null ? KINDS[e.type].hex : ratingColour(avg);
+        L.circle([e.lat, e.lng], {
+          radius: DONE_RADIUS_M,
+          color: c,
+          fillColor: c,
+          fillOpacity: e.id === selectedId ? 0.3 : 0.18,
+          weight: 1.5,
+          opacity: 0.55,
+          interactive: false, // the pin above it owns the click
+        }).addTo(layer);
+      }
+    }
+
     for (const e of located) {
       const isSelected = e.id === selectedId;
       L.marker([e.lat, e.lng], {
@@ -267,7 +297,11 @@ export default function MapView({
 
   return (
     <div className="relative h-full w-full">
-      <div ref={containerRef} className="h-full w-full" />
+      {/* The bucket-list half gets a colourless world to fill in. */}
+      <div
+        ref={containerRef}
+        className={`h-full w-full ${hasKinds(domain) ? "" : "map-mono"}`}
+      />
 
       {/* What you're looking at, and what the pin colours mean */}
       <div className="absolute left-4 top-[68px] z-[600] panel px-3 py-2 w-[132px]">

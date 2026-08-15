@@ -12,24 +12,48 @@ import { DOMAINS, DOMAIN_COPY, type Domain } from "@/lib/types";
 function DomainSwitch({ current }: { current: Domain }) {
   return (
     <div
-      className="flex items-center rounded-full border border-line bg-card-2 p-0.5 shrink-0"
+      className="flex items-center rounded-full border border-line bg-card-2 p-0.5 shrink-0 shadow-inner"
       role="group"
       aria-label="Which diary"
     >
       {DOMAINS.map((d) => {
         const active = d === current;
+        const copy = DOMAIN_COPY[d];
         return (
           <Link
             key={d}
-            href={DOMAIN_COPY[d].home}
+            href={copy.home}
             aria-current={active ? "page" : undefined}
-            className={`font-display text-[14px] leading-none px-3.5 py-1.5 rounded-full whitespace-nowrap transition-colors ${
-              active
-                ? "bg-accent text-white shadow-sm"
-                : "text-muted hover:text-ink"
-            }`}
+            // Each half fills in its own colour rather than a shared accent,
+            // so the switch says which world you're in, not just which
+            // button is pressed. The inactive side lifts slightly on hover —
+            // the page it leads to is the interesting part of this control.
+            className={`group flex items-center gap-1.5 font-display text-[14px] leading-none
+                        px-3.5 py-1.5 rounded-full whitespace-nowrap
+                        transition-all duration-200 ${
+                          active
+                            ? "text-white shadow-sm"
+                            : "text-muted hover:text-ink hover:-translate-y-px"
+                        }`}
+            style={active ? { backgroundColor: copy.hex } : undefined}
           >
-            {DOMAIN_COPY[d].name}
+            <svg
+              width={13}
+              height={13}
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={1.9}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className={`shrink-0 transition-transform duration-200 ${
+                active ? "" : "group-hover:scale-110"
+              }`}
+              aria-hidden
+            >
+              {d === "food" ? <FoodMark /> : <ActivityMark />}
+            </svg>
+            {copy.name}
           </Link>
         );
       })}
