@@ -1,25 +1,26 @@
-import { getEntries } from "@/lib/db";
-import { type Domain } from "@/lib/types";
-import BookFlip from "./BookFlip";
+import { getBucketItems, getEntries } from "@/lib/db";
+import { hasKinds, type BucketItem, type Domain } from "@/lib/types";
 import MapView from "./MapView";
 import Nav from "./Nav";
 
 // The map page for one half of the book. Both / and /activities are this
 // with a different domain.
-//
-// BookFlip is a sibling of the animated wrapper, not a child: .animate-page-turn
-// sets a transform, and a transformed ancestor becomes the containing block
-// for position:fixed descendants, which would peg the tab to this box for
-// the length of the animation and then snap it back to the viewport.
 export default async function DiaryMap({ domain }: { domain: Domain }) {
-  const entries = await getEntries(domain);
+  // The bucket list is only fetched for the half whose map is built around
+  // finishing it. The food map has a category bar in that space instead, so
+  // there is nothing there to feed.
+  const [entries, items] = await Promise.all([
+    getEntries(domain),
+    hasKinds(domain) ? Promise.resolve([] as BucketItem[]) : getBucketItems(domain),
+  ]);
+
+  const todo = items.filter((i) => !i.entryId);
 
   return (
     <div className="h-screen flex flex-col overflow-hidden">
-      <BookFlip from={domain} />
       <div className="flex-1 min-h-0 relative animate-page-turn">
         <Nav active="map" floating domain={domain} />
-        <MapView entries={entries} domain={domain} />
+        <MapView entries={entries} domain={domain} todo={todo} listTotal={items.length} />
       </div>
     </div>
   );

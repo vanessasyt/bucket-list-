@@ -93,11 +93,10 @@ body {
   animation: rise 0.35s ease-out both;
 }
 
-/* Turning to the other half of the book. Hinged on the right edge, which is
-   the edge the flip tab lives on, so the page appears to swing in from it.
-   Note this creates a containing block for position:fixed children — the
-   flip tab has to be a sibling of the element carrying this, never inside
-   it, or it will be positioned against this box until the animation ends. */
+/* Turning to the other half of the book: the page swings in from its right
+   edge. Note this creates a containing block for position:fixed children,
+   so nothing fixed can live inside the element carrying it — it would be
+   positioned against this box until the animation ends, then snap. */
 @keyframes page-turn {
   from {
     opacity: 0;

@@ -1,5 +1,41 @@
 import Link from "next/link";
-import { DOMAIN_COPY, type Domain } from "@/lib/types";
+import { DOMAINS, DOMAIN_COPY, type Domain } from "@/lib/types";
+
+// Which half you're in, and the way to the other one. Both are named at
+// once so the second half is discoverable without hunting — the previous
+// version tucked a tab half off the right edge and set it in 10px vertical
+// mono, which asked you to already know it was there.
+//
+// Newsreader at 14px rather than the tracked micro-mono used for field
+// labels: that style is right for labelling a value and wrong for a control
+// you're meant to press.
+function DomainSwitch({ current }: { current: Domain }) {
+  return (
+    <div
+      className="flex items-center rounded-full border border-line bg-card-2 p-0.5 shrink-0"
+      role="group"
+      aria-label="Which diary"
+    >
+      {DOMAINS.map((d) => {
+        const active = d === current;
+        return (
+          <Link
+            key={d}
+            href={DOMAIN_COPY[d].home}
+            aria-current={active ? "page" : undefined}
+            className={`font-display text-[14px] leading-none px-3.5 py-1.5 rounded-full whitespace-nowrap transition-colors ${
+              active
+                ? "bg-accent text-white shadow-sm"
+                : "text-muted hover:text-ink"
+            }`}
+          >
+            {DOMAIN_COPY[d].name}
+          </Link>
+        );
+      })}
+    </div>
+  );
+}
 
 // The shopfront, for the food half.
 function FoodMark() {
@@ -64,22 +100,26 @@ export default function Nav({
             {domain === "food" ? <FoodMark /> : <ActivityMark />}
           </svg>
         </span>
-        <span className="font-display text-lg sm:text-xl text-ink whitespace-nowrap group-hover:text-accent-hot transition-colors">
+        {/* The wordmark is the first thing to go when space is tight — the
+            switch beside it already says where you are. */}
+        <span className="hidden sm:inline font-display text-lg sm:text-xl text-ink whitespace-nowrap group-hover:text-accent-hot transition-colors">
           {copy.wordmark}
         </span>
       </Link>
 
+      <DomainSwitch current={domain} />
+
       <nav className="flex items-center gap-2 sm:gap-4">
         <Link
           href={copy.list}
-          className={`font-mono text-[10px] sm:text-[11px] tracking-[0.16em] uppercase transition-colors ${
+          className={`font-mono text-[10px] sm:text-[11px] tracking-[0.16em] uppercase whitespace-nowrap transition-colors ${
             active === "list" ? "text-accent-hot" : "text-muted hover:text-ink"
           }`}
         >
           {copy.listTitle}
         </Link>
         <Link href={copy.addHref} className="btn whitespace-nowrap">
-          + Add entry
+          + Add
         </Link>
       </nav>
     </header>

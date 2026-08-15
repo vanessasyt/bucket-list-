@@ -8,6 +8,7 @@ import {
   KINDS,
   hasCook,
   hasCuisine,
+  hasKinds,
   hasLocation,
   PEOPLE,
   PERSON_LABELS,
@@ -131,23 +132,27 @@ export default function EntryForm({
         </p>
       )}
 
-      <div>
-        <p className="field-label mb-2">What kind</p>
-        <div className="grid grid-cols-3 gap-2">
-          {/* Only this half's kinds: retyping a restaurant as bouldering
-              would move the entry to the other side of the book, and the
-              server rejects it anyway. */}
-          {typesIn(domain).map((t) => (
-            <Choice key={t} active={type === t} onClick={() => setType(t)}>
-              <span
-                className="inline-block w-1.5 h-1.5 rounded-full mr-1.5 align-middle"
-                style={{ backgroundColor: KINDS[t].hex }}
-              />
-              {KINDS[t].label}
-            </Choice>
-          ))}
+      {/* Only this half's kinds: retyping a restaurant as an outing would
+          move the entry to the other side of the book, and the server
+          rejects it anyway. When a half has only one kind there is nothing
+          to choose, so the row disappears rather than showing a single
+          permanently-selected button. */}
+      {hasKinds(domain) && (
+        <div>
+          <p className="field-label mb-2">What kind</p>
+          <div className="grid grid-cols-3 gap-2">
+            {typesIn(domain).map((t) => (
+              <Choice key={t} active={type === t} onClick={() => setType(t)}>
+                <span
+                  className="inline-block w-1.5 h-1.5 rounded-full mr-1.5 align-middle"
+                  style={{ backgroundColor: KINDS[t].hex }}
+                />
+                {KINDS[t].label}
+              </Choice>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {hasCook(type) && (
         <div>

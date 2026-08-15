@@ -6,7 +6,9 @@ import {
   KINDS,
   PEOPLE,
   PERSON_LABELS,
+  domainOf,
   formatRating,
+  hasKinds,
   hasLocation,
   ratingColour,
   ratingOf,
@@ -88,10 +90,15 @@ export default function PlaceDetail({
       )}
 
       <div className="p-3.5">
-        <p className="font-mono text-[9px] tracking-[0.2em] uppercase" style={{ color: style.hex }}>
-          {entry.cuisine || style.labelOne}
-          {entry.cook && ` · ${PERSON_LABELS[entry.cook]} cooked`}
-        </p>
+        {/* On a half with one kind the label would read the same on every
+            card and tell you nothing, so it only appears when there is a
+            real distinction to draw. */}
+        {(entry.cuisine || hasKinds(domainOf(entry.type)) || entry.cook) && (
+          <p className="font-mono text-[9px] tracking-[0.2em] uppercase" style={{ color: style.hex }}>
+            {entry.cuisine || (hasKinds(domainOf(entry.type)) ? style.labelOne : "")}
+            {entry.cook && ` · ${PERSON_LABELS[entry.cook]} cooked`}
+          </p>
+        )}
         <h2 className="font-display text-xl text-ink leading-tight mt-1">{entry.title}</h2>
         <p className="font-body text-[13px] text-muted mt-0.5 leading-snug">
           {entry.placeName ? `${entry.placeName}, ` : ""}

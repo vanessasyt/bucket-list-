@@ -73,25 +73,25 @@
   },
   {
     "title": "Punting to Grantchester",
-    "type": "punting",
+    "type": "outing",
     "city": "Cambridge",
     "cook": null
   },
   {
     "title": "Rainbow Rocket bouldering",
-    "type": "bouldering",
+    "type": "outing",
     "city": "Cambridge",
     "cook": null
   },
   {
     "title": "Pottery painting afternoon",
-    "type": "pottery",
+    "type": "outing",
     "city": "Cambridge",
     "cook": null
   },
   {
     "title": "Wandlebury Country Park",
-    "type": "walk",
+    "type": "outing",
     "city": "Cambridge",
     "cook": null
   },

@@ -67,42 +67,21 @@ export const KINDS = {
     icon: "M4 10h16v5a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4v-5ZM2 10h20M9 6c0-1 1-1.5 1-2.5M13 6c0-1 1-1.5 1-2.5",
   },
 
-  // Activities — things we did. No cuisine: an afternoon's bouldering isn't
-  // a kind of food, and the dish-naming logic doesn't apply.
-  punting: {
-    domain: "activity",
-    label: "Punting",
-    labelOne: "Punting",
-    hex: "#2C6E9B",
-    icon: "M3 19c1.5 1.2 3 1.2 4.5 0s3-1.2 4.5 0 3 1.2 4.5 0M4.5 12h12l-2 4H6.5l-2-4ZM18 4 14.5 16",
-  },
-  bouldering: {
-    domain: "activity",
-    label: "Bouldering",
-    labelOne: "Bouldering",
-    hex: "#C4703A",
-    icon: "M3 20 9 5l4.5 6.5L17 8l4 12H3ZM9.5 14h.01M13.5 17h.01",
-  },
-  pottery: {
-    domain: "activity",
-    label: "Pottery",
-    labelOne: "Pottery",
-    hex: "#9B4C7E",
-    icon: "M9 3h6M10 3c0 2.2-3 3.4-3 7.2A5 5 0 0 0 12 15.4a5 5 0 0 0 5-5.2C17 6.4 14 5.2 14 3M6.5 20h11",
-  },
-  walk: {
-    domain: "activity",
-    label: "Walks",
-    labelOne: "Walk",
-    hex: "#5F8C3F",
-    icon: "M14.5 4.6a1.6 1.6 0 1 1-3.2 0 1.6 1.6 0 0 1 3.2 0M12.6 9.2 10 12.2l2.6 2.4.7 5.2M12.6 9.2l3.5 1.7 1.1 3.1M13.3 14.6 9.6 20M10 12.2 6.8 13",
-  },
+  // Activities — one kind, deliberately. This half is a bucket list you tick
+  // off, not a collection you browse, so there is nothing to categorise: the
+  // title already says whether it was punting or pottery. Everything
+  // category-shaped in the UI is gated on hasKinds() below.
+  //
+  // NOT named 'activity': a much older version of this app wrote bucket_items
+  // rows with that exact type, and they stay invisible precisely because no
+  // kind claims them.
   outing: {
     domain: "activity",
-    label: "Days out",
-    labelOne: "Day out",
+    label: "Things we did",
+    labelOne: "Outing",
     hex: "#6455A8",
-    icon: "m12 3.6 2.6 5.4 5.9.8-4.3 4.1 1 5.9-5.2-2.8-5.2 2.8 1-5.9L3.5 9.8l5.9-.8L12 3.6Z",
+    // A planted flag — the bucket-list gesture.
+    icon: "M6 21V4M6 4h11l-2.2 3.6L17 11H6",
   },
 } as const satisfies Record<string, KindDef>;
 
@@ -120,6 +99,14 @@ export function domainOf(type: EntryType): Domain {
 
 export function typesIn(domain: Domain): EntryType[] {
   return ENTRY_TYPES.filter((t) => KINDS[t].domain === domain);
+}
+
+// A domain with a single kind has nothing to categorise: no filter bar, no
+// kind chips on the forms, no grouped wishlist, no kind label on a card.
+// This is the one gate for all of it, so adding a second activity kind later
+// brings that UI back on its own.
+export function hasKinds(domain: Domain): boolean {
+  return typesIn(domain).length > 1;
 }
 
 // `as const satisfies` keeps the keys literal — which is what makes
@@ -183,7 +170,7 @@ export const DOMAIN_COPY: Record<
     home: "/activities",
     list: "/activities/list",
     addHref: "/add?domain=activity",
-    defaultKind: "punting",
+    defaultKind: "outing",
     unit: ["thing", "things"],
     allLabel: "Everything",
     listTitle: "Want to do",

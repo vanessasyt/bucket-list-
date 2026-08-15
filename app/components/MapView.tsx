@@ -5,12 +5,15 @@ import {
   DOMAIN_COPY,
   RATING_BANDS,
   avgRating,
+  hasKinds,
   hasLocation,
+  type BucketItem,
   type Domain,
   type Entry,
   type Located,
 } from "@/lib/types";
 import CategoryBar, { filtersFor, filterLabel, type Filter } from "./CategoryBar";
+import ToDoStrip from "./ToDoStrip";
 import PlaceDetail from "./PlaceDetail";
 import Timeline from "./Timeline";
 import {
@@ -62,9 +65,15 @@ function groupByCity(entries: Located[]): CityGroup[] {
 export default function MapView({
   entries,
   domain,
+  todo = [],
+  listTotal = 0,
 }: {
   entries: Entry[];
   domain: Domain;
+  // The wishlist items not yet done, and the size of the whole list. Only
+  // the activity half passes these — it's the half that's about finishing.
+  todo?: BucketItem[];
+  listTotal?: number;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -111,6 +120,15 @@ export default function MapView({
     }),
     [filtered, located]
   );
+
+  // Only meaningful where there's a list to finish. Counted from the
+  // wishlist, not from entries, so things done without ever being listed
+  // don't make the bar exceed 100%.
+  const progress = useMemo(() => {
+    if (listTotal === 0) return null;
+    const done = listTotal - todo.length;
+    return { done, total: listTotal, pct: Math.round((done / listTotal) * 100) };
+  }, [listTotal, todo.length]);
 
   /* ---- set the map up once ---- */
   useEffect(() => {
@@ -252,12 +270,31 @@ export default function MapView({
       <div ref={containerRef} className="h-full w-full" />
 
       {/* What you're looking at, and what the pin colours mean */}
-      <div className="absolute left-4 top-[68px] z-[600] panel px-3 py-2">
+      <div className="absolute left-4 top-[68px] z-[600] panel px-3 py-2 w-[132px]">
         <p className="field-label">{filterLabel(filter, domain)}</p>
         <p className="font-display text-2xl text-ink leading-none mt-0.5">{stats.places}</p>
+
         <p className="font-mono text-[9px] tracking-[0.14em] uppercase text-muted mt-1">
           {stats.cities} {stats.cities === 1 ? "city" : "cities"}
         </p>
+
+        {/* Kept separate from the count above on purpose: the big number is
+            everything we did, this is how much of the list we've got
+            through. They differ whenever we do something that was never on
+            it, so one can't be a subtitle of the other. */}
+        {progress && (
+          <div className="mt-2 pt-2 border-t border-line">
+            <p className="font-mono text-[9px] tracking-[0.14em] uppercase text-muted">
+              {progress.done} of {progress.total} ticked off
+            </p>
+            <div className="h-1 bg-card-2 rounded-full mt-1.5 overflow-hidden">
+              <div
+                className="h-full bg-accent transition-all duration-500"
+                style={{ width: `${progress.pct}%` }}
+              />
+            </div>
+          </div>
+        )}
         {/* Without this line an entry with no location looks like it failed
             to save — it's counted above but nowhere on the map. */}
         {stats.unplaced > 0 && (
@@ -305,9 +342,8 @@ export default function MapView({
         <span className="font-mono text-[10px] tracking-[0.14em] uppercase">List</span>
       </button>
 
-      {/* Zoom and recentre, down the right edge. Sits below centre to leave
-          the flip tab, which is pinned at 38%, a clear stretch of edge. */}
-      <div className="absolute right-4 top-[62%] -translate-y-1/2 z-[600] flex flex-col gap-1.5">
+      {/* Zoom and recentre, down the right edge */}
+      <div className="absolute right-4 top-1/2 -translate-y-1/2 z-[600] flex flex-col gap-1.5">
         <button
           type="button"
           onClick={fitAll}
@@ -341,9 +377,14 @@ export default function MapView({
         </div>
       )}
 
-      {/* Category bar along the bottom */}
+      {/* The bottom belongs to whatever that half is for: filtering a
+          collection, or finishing a list. */}
       <div className="absolute inset-x-0 bottom-0 z-[600] flex justify-center pb-4 px-4 pointer-events-none">
-        <CategoryBar value={filter} counts={counts} onChange={setFilter} domain={domain} />
+        {hasKinds(domain) ? (
+          <CategoryBar value={filter} counts={counts} onChange={setFilter} domain={domain} />
+        ) : (
+          <ToDoStrip items={todo} listHref={DOMAIN_COPY[domain].list} />
+        )}
       </div>
 
       <Timeline

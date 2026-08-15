@@ -20,14 +20,9 @@ const config: Config = {
         restaurant: "#C2455E",
         cooking: "#8259A8",
 
-        // Activities. Spread 60-70° apart in hue so they stay separable at
-        // pin size, and kept clear of the rating bands — kind colour is the
-        // glyph on an unrated pin, so anything near olive or dusty pink
-        // would read as a score.
-        punting: "#2C6E9B",
-        bouldering: "#C4703A",
-        pottery: "#9B4C7E",
-        walk: "#5F8C3F",
+        // Activities are one kind, so this is the whole half. Kept clear of
+        // the rating bands — kind colour is the glyph on an unrated pin, so
+        // anything near olive or dusty pink would read as a score.
         outing: "#6455A8",
 
         // Rating: how good it was. Kept apart from the category colours so

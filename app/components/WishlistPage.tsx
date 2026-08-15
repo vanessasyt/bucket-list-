@@ -3,6 +3,7 @@ import { getBucketItems, getEntries } from "@/lib/db";
 import {
   DOMAIN_COPY,
   KINDS,
+  hasKinds,
   typesIn,
   type BucketItem,
   type Domain,
@@ -10,7 +11,6 @@ import {
 } from "@/lib/types";
 import { deleteBucketItemAction } from "../actions";
 import AddBucketForm from "./AddBucketForm";
-import BookFlip from "./BookFlip";
 import BucketRow from "./BucketRow";
 import Nav from "./Nav";
 
@@ -29,16 +29,16 @@ export default async function WishlistPage({ domain }: { domain: Domain }) {
   const todo = items.filter((i) => !i.entryId);
   const done = items.filter((i) => i.entryId);
 
-  const groups: { type: EntryType; items: BucketItem[] }[] = typesIn(domain).map((type) => ({
-    type,
-    items: todo.filter((i) => i.type === type),
-  }));
+  // One kind means one flat list — a lone group header naming the only kind
+  // there is would be pure furniture.
+  const groups: { type: EntryType | null; items: BucketItem[] }[] = hasKinds(domain)
+    ? typesIn(domain).map((type) => ({ type, items: todo.filter((i) => i.type === type) }))
+    : [{ type: null, items: todo }];
 
   const pct = items.length ? Math.round((done.length / items.length) * 100) : 0;
 
   return (
     <div className="min-h-screen flex flex-col">
-      <BookFlip from={domain} />
       <Nav active="list" domain={domain} />
 
       <main className="flex-1">
@@ -79,18 +79,20 @@ export default async function WishlistPage({ domain }: { domain: Domain }) {
 
           {groups.map(({ type, items: groupItems }) =>
             groupItems.length === 0 ? null : (
-              <section key={type} className="mt-8">
-                <div className="flex items-center gap-2.5 mb-2.5">
-                  <span
-                    className="w-2 h-2 rounded-full"
-                    style={{ backgroundColor: KINDS[type].hex }}
-                  />
-                  <h2 className="font-mono text-[11px] tracking-[0.2em] uppercase text-ink">
-                    {KINDS[type].label}
-                  </h2>
-                  <span className="font-mono text-[10px] text-muted">{groupItems.length}</span>
-                  <div className="flex-1 h-px bg-line" />
-                </div>
+              <section key={type ?? "all"} className="mt-8">
+                {type !== null && (
+                  <div className="flex items-center gap-2.5 mb-2.5">
+                    <span
+                      className="w-2 h-2 rounded-full"
+                      style={{ backgroundColor: KINDS[type].hex }}
+                    />
+                    <h2 className="font-mono text-[11px] tracking-[0.2em] uppercase text-ink">
+                      {KINDS[type].label}
+                    </h2>
+                    <span className="font-mono text-[10px] text-muted">{groupItems.length}</span>
+                    <div className="flex-1 h-px bg-line" />
+                  </div>
+                )}
 
                 <ul className="space-y-1.5">
                   {groupItems.map((item) => (

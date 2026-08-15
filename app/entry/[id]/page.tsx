@@ -9,6 +9,7 @@ import {
   avgRating,
   domainOf,
   formatRating,
+  hasKinds,
   ratingColour,
   ratingOf,
   reviewOf,
@@ -59,11 +60,15 @@ export default async function EntryPage({ params }: { params: { id: string } }) 
                 ← Map
               </Link>
 
-              <p className="field-label mt-3" style={{ color: style.hex }}>
-                {style.labelOne}
-                {entry.cuisine && ` · ${entry.cuisine}`}
-                {entry.cook && ` · ${PERSON_LABELS[entry.cook]} cooked`}
-              </p>
+              {/* The kind only earns a line when the half has more than one
+                  of them; otherwise it reads the same on every entry. */}
+              {(hasKinds(domain) || entry.cuisine || entry.cook) && (
+                <p className="field-label mt-3" style={{ color: style.hex }}>
+                  {hasKinds(domain) ? style.labelOne : entry.cuisine}
+                  {hasKinds(domain) && entry.cuisine && ` · ${entry.cuisine}`}
+                  {entry.cook && ` · ${PERSON_LABELS[entry.cook]} cooked`}
+                </p>
+              )}
               <h1 className="font-display text-4xl sm:text-5xl text-ink leading-tight mt-1">
                 {entry.title}
               </h1>

@@ -9,6 +9,7 @@ import {
   PEOPLE,
   PERSON_LABELS,
   hasCook,
+  hasKinds,
   typesIn,
   type BucketItem,
   type Domain,
@@ -69,25 +70,26 @@ export default function BucketRow({
           </div>
 
           <div className="flex flex-wrap items-center gap-1.5 mt-2.5">
-            {typesIn(domain).map((t) => (
-              <button
-                key={t}
-                type="button"
-                onClick={() => setType(t)}
-                aria-pressed={type === t}
-                className={`font-mono text-[10px] tracking-[0.14em] uppercase px-2.5 py-1 rounded-sm border transition-colors ${
-                  type === t
-                    ? "bg-accent/15 border-accent text-ink"
-                    : "border-line text-muted hover:text-ink hover:border-muted"
-                }`}
-              >
-                <span
-                  className="inline-block w-1.5 h-1.5 rounded-full mr-1.5 align-middle"
-                  style={{ backgroundColor: KINDS[t].hex }}
-                />
-                {KINDS[t].label}
-              </button>
-            ))}
+            {hasKinds(domain) &&
+              typesIn(domain).map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => setType(t)}
+                  aria-pressed={type === t}
+                  className={`font-mono text-[10px] tracking-[0.14em] uppercase px-2.5 py-1 rounded-sm border transition-colors ${
+                    type === t
+                      ? "bg-accent/15 border-accent text-ink"
+                      : "border-line text-muted hover:text-ink hover:border-muted"
+                  }`}
+                >
+                  <span
+                    className="inline-block w-1.5 h-1.5 rounded-full mr-1.5 align-middle"
+                    style={{ backgroundColor: KINDS[t].hex }}
+                  />
+                  {KINDS[t].label}
+                </button>
+              ))}
 
             {hasCook(type) && (
               <select

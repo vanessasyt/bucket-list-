@@ -6,15 +6,23 @@ else after that.
 
 ## Two halves, one book
 
-The diary has a food half and an activity half. They're the same app with a
-different set of kinds: same map, same wishlist, same two-person reviews. A tab
-tucked against the right edge of the screen flips between them.
+The diary has a food half and an activity half, and a switch in the nav bar
+moves between them. They share a map, a wishlist and the two-person reviews,
+but they are not the same kind of tool:
+
+- **Food is for browsing.** Filter by kind, compare places, decide where to
+  eat. Categories earn their place.
+- **Activities is for finishing.** A list that shrinks as you tick things off.
+  There are no categories at all — the map is what we've *done*, and the strip
+  along the bottom is what we *haven't*. Tapping something on that strip opens
+  the prefilled form, and saving it moves the item onto the map as a pin.
 
 | | Food | Activities |
 |---|---|---|
 | Map | `/` | `/activities` |
 | Wishlist | `/list` | `/activities/list` |
-| Kinds | cafés, restaurants, home cooked | punting, bouldering, pottery, walks, days out |
+| Kinds | cafés, restaurants, home cooked | one, unnamed in the UI |
+| Bottom of map | category filter | what's left to do |
 | Cuisine field | yes | no |
 
 Food keeps the root so nothing bookmarked breaks. `/entry/[id]` serves both
@@ -47,8 +55,16 @@ registry in `lib/types.ts`. Add an object there and the union type, the
 filters, the wishlist groups and the pins all follow. The only other edit is
 the matching colour token in `tailwind.config.ts`.
 
+Every category-shaped control is gated on `hasKinds(domain)`, which is just
+"does this half have more than one kind". So giving activities a second kind
+brings back the filter bar, the kind chips on both forms, the grouped wishlist
+and the kind label on cards, all at once — and taking it away again removes
+them. Nothing else needs touching either way.
+
 Do **not** name a kind `activity` — a much older version of this app wrote rows
 with that type, and they're deliberately invisible because no kind claims it.
+The same is true of `punting`, `bouldering`, `pottery` and `walk`, which
+existed briefly before the activity half collapsed to one kind.
 
 ### Location is optional
 
@@ -144,8 +160,9 @@ app/
   actions.ts                All server actions
   components/
     DiaryMap, WishlistPage  One half of the book, either one
-    BookFlip                The tab that turns the page
-    Nav, MapView, CategoryBar, Pin, PlaceDetail, Timeline
+    Nav, MapView, Pin, PlaceDetail, Timeline
+    CategoryBar             Bottom of the food map: filter by kind
+    ToDoStrip               Bottom of the activity map: what's left
     EntryForm, ReviewForm, WhoPicker, DeleteEntry
     LocationPicker, PhotoUploader, AddPhotos
     AddBucketForm, BucketRow
