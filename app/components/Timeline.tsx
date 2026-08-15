@@ -1,13 +1,16 @@
 "use client";
 
 import {
-  TYPE_STYLE,
+  DOMAIN_COPY,
+  KINDS,
   avgRating,
   formatRating,
+  hasLocation,
   ratingColour,
+  type Domain,
   type Entry,
 } from "@/lib/types";
-import { TYPE_ICON_PATHS } from "./typeIcons";
+import { iconPath } from "./typeIcons";
 
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",
@@ -49,12 +52,14 @@ export default function Timeline({
   open,
   onSelect,
   onClose,
+  domain,
 }: {
   entries: Entry[];
   selectedId: number | null;
   open: boolean;
   onSelect: (entry: Entry) => void;
   onClose: () => void;
+  domain: Domain;
 }) {
   const groups = groupByMonth(entries);
 
@@ -68,9 +73,10 @@ export default function Timeline({
       <div className="h-full bg-card border-l border-line flex flex-col shadow-[-6px_0_20px_rgba(34,48,42,0.10)]">
         <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-line shrink-0">
           <div>
-            <p className="field-label">Everywhere we&rsquo;ve been</p>
+            <p className="field-label">Everything we&rsquo;ve done</p>
             <p className="font-display text-xl text-ink leading-none mt-1">
-              {entries.length} {entries.length === 1 ? "place" : "places"}
+              {entries.length}{" "}
+              {DOMAIN_COPY[domain].unit[entries.length === 1 ? 0 : 1]}
             </p>
           </div>
           <button
@@ -97,7 +103,8 @@ export default function Timeline({
               <ul>
                 {group.items.map((entry) => {
                   const avg = avgRating(entry);
-                  const style = TYPE_STYLE[entry.type];
+                  const style = KINDS[entry.type];
+                  const placed = hasLocation(entry);
                   const active = entry.id === selectedId;
 
                   return (
@@ -131,9 +138,11 @@ export default function Timeline({
                           <span className="font-display text-[15px] text-ink leading-tight block truncate">
                             {entry.title}
                           </span>
+                          {/* Clicking a row moves the map, so a row with no
+                              pin has to say why nothing happens. */}
                           <span className="font-mono text-[9px] tracking-[0.12em] uppercase text-muted block truncate mt-0.5">
                             {entry.cuisine ? `${entry.cuisine} · ` : ""}
-                            {entry.city}
+                            {placed ? entry.city : "Not on the map"}
                           </span>
                         </span>
 
@@ -149,7 +158,7 @@ export default function Timeline({
                           className="shrink-0"
                           aria-hidden
                         >
-                          <path d={TYPE_ICON_PATHS[entry.type]} />
+                          <path d={iconPath(entry.type)} />
                         </svg>
                       </button>
                     </li>

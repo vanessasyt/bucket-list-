@@ -1,8 +1,16 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { RATING_BANDS, avgRating, type Entry } from "@/lib/types";
-import CategoryBar, { FILTERS, filterLabel, type Filter } from "./CategoryBar";
+import {
+  DOMAIN_COPY,
+  RATING_BANDS,
+  avgRating,
+  hasLocation,
+  type Domain,
+  type Entry,
+  type Located,
+} from "@/lib/types";
+import CategoryBar, { filtersFor, filterLabel, type Filter } from "./CategoryBar";
 import PlaceDetail from "./PlaceDetail";
 import Timeline from "./Timeline";
 import {
@@ -26,7 +34,7 @@ interface CityGroup {
   average: number | null;
 }
 
-function groupByCity(entries: Entry[]): CityGroup[] {
+function groupByCity(entries: Located[]): CityGroup[] {
   const map = new Map<
     string,
     { latSum: number; lngSum: number; count: number; ratings: number[] }
@@ -51,7 +59,13 @@ function groupByCity(entries: Entry[]): CityGroup[] {
   }));
 }
 
-export default function MapView({ entries }: { entries: Entry[] }) {
+export default function MapView({
+  entries,
+  domain,
+}: {
+  entries: Entry[];
+  domain: Domain;
+}) {
   const containerRef = useRef<HTMLDivElement>(null);
   /* eslint-disable @typescript-eslint/no-explicit-any */
   const mapRef = useRef<any>(null);
@@ -70,13 +84,19 @@ export default function MapView({ entries }: { entries: Entry[] }) {
     [entries, filter]
   );
 
+  // Everything Leaflet touches works from this list rather than `filtered`,
+  // since an entry without coordinates has nowhere to be drawn. `filtered`
+  // stays the source of truth for the counts and the timeline, so a
+  // map-less entry is still counted and still reachable from the list.
+  const located = useMemo(() => filtered.filter(hasLocation), [filtered]);
+
   const counts = useMemo(() => {
     const out = {} as Record<Filter, number>;
-    for (const f of FILTERS) {
+    for (const f of filtersFor(domain)) {
       out[f] = f === "all" ? entries.length : entries.filter((e) => e.type === f).length;
     }
     return out;
-  }, [entries]);
+  }, [entries, domain]);
 
   const selected = useMemo(
     () => filtered.find((e) => e.id === selectedId) ?? null,
@@ -86,9 +106,10 @@ export default function MapView({ entries }: { entries: Entry[] }) {
   const stats = useMemo(
     () => ({
       places: filtered.length,
-      cities: new Set(filtered.map((e) => e.city)).size,
+      cities: new Set(located.map((e) => e.city)).size,
+      unplaced: filtered.length - located.length,
     }),
-    [filtered]
+    [filtered, located]
   );
 
   /* ---- set the map up once ---- */
@@ -116,8 +137,9 @@ export default function MapView({ entries }: { entries: Entry[] }) {
 
       layerRef.current = L.layerGroup().addTo(map);
 
-      if (entries.length > 0) {
-        const bounds = L.latLngBounds(entries.map((e) => [e.lat, e.lng] as [number, number]));
+      const placed = entries.filter(hasLocation);
+      if (placed.length > 0) {
+        const bounds = L.latLngBounds(placed.map((e) => [e.lat, e.lng] as [number, number]));
         map.fitBounds(bounds, { padding: [90, 90], maxZoom: 13 });
       } else {
         map.setView([52.2053, 0.1218], 13); // Cambridge, as a sensible empty state
@@ -150,7 +172,7 @@ export default function MapView({ entries }: { entries: Entry[] }) {
     layer.clearLayers();
 
     if (zoom < CITY_ZOOM_THRESHOLD) {
-      for (const c of groupByCity(filtered)) {
+      for (const c of groupByCity(located)) {
         L.marker([c.lat, c.lng], {
           icon: L.divIcon({
             className: "pin-marker",
@@ -165,7 +187,7 @@ export default function MapView({ entries }: { entries: Entry[] }) {
       return;
     }
 
-    for (const e of filtered) {
+    for (const e of located) {
       const isSelected = e.id === selectedId;
       L.marker([e.lat, e.lng], {
         icon: L.divIcon({
@@ -187,7 +209,7 @@ export default function MapView({ entries }: { entries: Entry[] }) {
         .addTo(layer);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ready, filtered, selectedId, zoom]);
+  }, [ready, located, selectedId, zoom]);
 
   // A place that's been filtered out shouldn't stay selected behind the card.
   useEffect(() => {
@@ -196,8 +218,11 @@ export default function MapView({ entries }: { entries: Entry[] }) {
     }
   }, [filtered, selectedId]);
 
+  // The card opens either way. An entry with no coordinates simply doesn't
+  // move the map — the card says so rather than the click doing nothing.
   function select(entry: Entry) {
     setSelectedId(entry.id);
+    if (!hasLocation(entry)) return;
     mapRef.current?.panTo([entry.lat, entry.lng], { animate: true, duration: 0.4 });
   }
 
@@ -206,7 +231,7 @@ export default function MapView({ entries }: { entries: Entry[] }) {
   function selectFromList(entry: Entry) {
     setSelectedId(entry.id);
     const map = mapRef.current;
-    if (!map) return;
+    if (!map || !hasLocation(entry)) return;
     map.flyTo([entry.lat, entry.lng], Math.max(map.getZoom(), 15), { duration: 0.8 });
   }
 
@@ -214,11 +239,11 @@ export default function MapView({ entries }: { entries: Entry[] }) {
     const L = LRef.current;
     const map = mapRef.current;
     if (!L || !map) return;
-    if (filtered.length === 0) {
+    if (located.length === 0) {
       map.flyTo([52.2053, 0.1218], 12, { duration: 0.8 });
       return;
     }
-    const bounds = L.latLngBounds(filtered.map((e) => [e.lat, e.lng] as [number, number]));
+    const bounds = L.latLngBounds(located.map((e) => [e.lat, e.lng] as [number, number]));
     map.flyToBounds(bounds, { padding: [90, 90], maxZoom: 13, duration: 0.8 });
   }
 
@@ -228,11 +253,18 @@ export default function MapView({ entries }: { entries: Entry[] }) {
 
       {/* What you're looking at, and what the pin colours mean */}
       <div className="absolute left-4 top-[68px] z-[600] panel px-3 py-2">
-        <p className="field-label">{filterLabel(filter)}</p>
+        <p className="field-label">{filterLabel(filter, domain)}</p>
         <p className="font-display text-2xl text-ink leading-none mt-0.5">{stats.places}</p>
         <p className="font-mono text-[9px] tracking-[0.14em] uppercase text-muted mt-1">
           {stats.cities} {stats.cities === 1 ? "city" : "cities"}
         </p>
+        {/* Without this line an entry with no location looks like it failed
+            to save — it's counted above but nowhere on the map. */}
+        {stats.unplaced > 0 && (
+          <p className="font-mono text-[9px] tracking-[0.14em] uppercase text-muted mt-0.5">
+            {stats.unplaced} not on the map
+          </p>
+        )}
 
         <div className="mt-2 pt-2 border-t border-line">
           <div className="flex items-center gap-1">
@@ -273,8 +305,9 @@ export default function MapView({ entries }: { entries: Entry[] }) {
         <span className="font-mono text-[10px] tracking-[0.14em] uppercase">List</span>
       </button>
 
-      {/* Zoom and recentre, down the right edge */}
-      <div className="absolute right-4 top-1/2 -translate-y-1/2 z-[600] flex flex-col gap-1.5">
+      {/* Zoom and recentre, down the right edge. Sits below centre to leave
+          the flip tab, which is pinned at 38%, a clear stretch of edge. */}
+      <div className="absolute right-4 top-[62%] -translate-y-1/2 z-[600] flex flex-col gap-1.5">
         <button
           type="button"
           onClick={fitAll}
@@ -310,7 +343,7 @@ export default function MapView({ entries }: { entries: Entry[] }) {
 
       {/* Category bar along the bottom */}
       <div className="absolute inset-x-0 bottom-0 z-[600] flex justify-center pb-4 px-4 pointer-events-none">
-        <CategoryBar value={filter} counts={counts} onChange={setFilter} />
+        <CategoryBar value={filter} counts={counts} onChange={setFilter} domain={domain} />
       </div>
 
       <Timeline
@@ -322,12 +355,19 @@ export default function MapView({ entries }: { entries: Entry[] }) {
           setTimelineOpen(false);
         }}
         onClose={() => setTimelineOpen(false)}
+        domain={domain}
       />
 
-      {filtered.length === 0 && (
+      {/* An empty map means one of two quite different things, and sending
+          someone to the list when there is nothing to find would be wrong. */}
+      {located.length === 0 && (
         <div className="absolute inset-0 z-[500] flex items-center justify-center pointer-events-none">
           <div className="panel px-5 py-4 text-center max-w-xs">
-            <p className="font-body text-sm text-ink">No places yet</p>
+            <p className="font-body text-sm text-ink">
+              {filtered.length === 0
+                ? DOMAIN_COPY[domain].emptyMap
+                : "Nothing here has a location — open the list to see it"}
+            </p>
           </div>
         </div>
       )}

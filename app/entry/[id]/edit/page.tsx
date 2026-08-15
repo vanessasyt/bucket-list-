@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getEntry } from "@/lib/db";
+import { domainOf } from "@/lib/types";
 import Nav from "@/app/components/Nav";
 import EntryForm from "@/app/components/EntryForm";
 import DeleteEntry from "@/app/components/DeleteEntry";
@@ -14,9 +15,11 @@ export default async function EditEntryPage({ params }: { params: { id: string }
   const entry = await getEntry(id);
   if (!entry) notFound();
 
+  const domain = domainOf(entry.type);
+
   return (
     <div className="min-h-screen flex flex-col">
-      <Nav active="add" />
+      <Nav active="add" domain={domain} />
 
       <main className="flex-1">
         <div className="mx-auto max-w-2xl px-4 sm:px-5 py-8">
@@ -32,7 +35,7 @@ export default async function EditEntryPage({ params }: { params: { id: string }
           </div>
 
           <div className="mt-7">
-            <EntryForm mode="edit" entry={entry} />
+            <EntryForm mode="edit" entry={entry} domain={domain} />
           </div>
 
           <div className="mt-10 pt-6 border-t border-line">

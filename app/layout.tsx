@@ -17,8 +17,9 @@ const plexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Food Diary",
-  description: "Every café, restaurant and home-cooked meal, on a map.",
+  title: "Our Diary",
+  description:
+    "Every café, restaurant and home-cooked meal, and everything we did — on a map, with what each of us thought.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

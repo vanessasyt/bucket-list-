@@ -2,11 +2,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getEntry } from "@/lib/db";
 import {
+  DOMAIN_COPY,
+  KINDS,
   PEOPLE,
   PERSON_LABELS,
-  TYPE_LABELS_ONE,
-  TYPE_STYLE,
   avgRating,
+  domainOf,
   formatRating,
   ratingColour,
   ratingOf,
@@ -35,12 +36,15 @@ export default async function EntryPage({ params }: { params: { id: string } }) 
   const entry = await getEntry(id);
   if (!entry) notFound();
 
-  const style = TYPE_STYLE[entry.type];
+  const style = KINDS[entry.type];
   const avg = avgRating(entry);
+  // One entry route serves both halves; the entry's own kind says which one
+  // it belongs to, so the nav and the back link point the right way.
+  const domain = domainOf(entry.type);
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Nav active="map" />
+      <Nav active="map" domain={domain} />
 
       <main className="flex-1">
         <div className="h-3" style={{ backgroundColor: `${style.hex}22` }} />
@@ -49,14 +53,14 @@ export default async function EntryPage({ params }: { params: { id: string } }) 
           <div className="flex items-start justify-between gap-4 animate-rise">
             <div className="min-w-0">
               <Link
-                href="/"
+                href={DOMAIN_COPY[domain].home}
                 className="font-mono text-[10px] tracking-[0.16em] uppercase text-muted hover:text-ink"
               >
                 ← Map
               </Link>
 
               <p className="field-label mt-3" style={{ color: style.hex }}>
-                {TYPE_LABELS_ONE[entry.type]}
+                {style.labelOne}
                 {entry.cuisine && ` · ${entry.cuisine}`}
                 {entry.cook && ` · ${PERSON_LABELS[entry.cook]} cooked`}
               </p>

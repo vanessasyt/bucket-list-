@@ -1,5 +1,6 @@
 import { Pool } from "pg";
-import type { BucketItem, Entry, EntryType, Person } from "./types";
+import { ENTRY_TYPES, typesIn } from "./types";
+import type { BucketItem, Domain, Entry, EntryType, Person } from "./types";
 
 // The pool is built lazily rather than at module load. Next.js imports
 // route files during the build to inspect them, and a missing connection
@@ -41,8 +42,8 @@ function ensureSchema() {
           city TEXT NOT NULL,
           place_name TEXT,
           cuisine TEXT,
-          lat DOUBLE PRECISION NOT NULL,
-          lng DOUBLE PRECISION NOT NULL,
+          lat DOUBLE PRECISION,
+          lng DOUBLE PRECISION,
           photos TEXT[] NOT NULL DEFAULT '{}',
           cook TEXT,
           vanessa_rating NUMERIC,
@@ -57,6 +58,15 @@ function ensureSchema() {
       // release needs its own ALTER. Leaving this out is what silently
       // broke the map once already.
       await p.query(`ALTER TABLE entries ADD COLUMN IF NOT EXISTS cuisine TEXT;`);
+
+      // Location is optional: an evening class and a meal cooked at home
+      // don't belong on a map. Dropping NOT NULL is a catalogue-only change
+      // — no table rewrite — and a no-op once the column is already
+      // nullable, so it is safe to run on every cold start. There is no
+      // IF EXISTS form for ALTER COLUMN and none is needed: the CREATE TABLE
+      // above guarantees the columns exist in both the old and new shape.
+      await p.query(`ALTER TABLE entries ALTER COLUMN lat DROP NOT NULL;`);
+      await p.query(`ALTER TABLE entries ALTER COLUMN lng DROP NOT NULL;`);
 
       // Photos live in the database rather than in blob storage, so the app
       // needs nothing beyond DATABASE_URL to work.
@@ -81,7 +91,14 @@ function ensureSchema() {
           UNIQUE (title, city)
         );
       `);
-    })();
+    })().catch((err) => {
+      // A memoised promise caches its rejection too, so without this one
+      // transient connection failure would brick this serverless instance
+      // for as long as it lives. Clearing the cache lets the next request
+      // try again.
+      schemaReady = null;
+      throw err;
+    });
   }
   return schemaReady;
 }
@@ -96,8 +113,8 @@ function toEntry(r: any): Entry {
     city: r.city,
     placeName: r.place_name,
     cuisine: r.cuisine ?? null,
-    lat: Number(r.lat),
-    lng: Number(r.lng),
+    lat: r.lat === null ? null : Number(r.lat),
+    lng: r.lng === null ? null : Number(r.lng),
     photos: r.photos ?? [],
     cook: (r.cook as Person) ?? null,
     vanessaRating: r.vanessa_rating === null ? null : Number(r.vanessa_rating),
@@ -119,32 +136,41 @@ function toBucketItem(r: any): BucketItem {
 }
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
-// Every read is scoped to the three food types. An older version of this app
-// also stored 'activity' rows; they stay in the table but no longer surface
-// anywhere, which is the fresh start without throwing anything away.
-const FOOD_TYPES = "('cafe','restaurant','cooking')";
-
-export async function getEntries(): Promise<Entry[]> {
+// Reads are scoped to one half of the book by listing that domain's kinds.
+// A row whose type belongs to no kind at all — the 'activity' rows an older
+// version of this app wrote — matches nothing and stays invisible, which is
+// what the old hardcoded food-type filter did. The ::text[] cast is
+// required: node-pg sends the array untyped and Postgres won't infer the
+// element type on its own.
+export async function getEntries(domain: Domain): Promise<Entry[]> {
   await ensureSchema();
   const { rows } = await getPool().query(
-    `SELECT * FROM entries WHERE type IN ${FOOD_TYPES} ORDER BY date DESC, id DESC;`
+    `SELECT * FROM entries WHERE type = ANY($1::text[]) ORDER BY date DESC, id DESC;`,
+    [typesIn(domain)]
   );
   return rows.map(toEntry);
 }
 
+// Deliberately not domain-scoped: /entry/[id] is one route serving both
+// halves, so it only needs to reject types the app no longer knows about.
 export async function getEntry(id: number): Promise<Entry | null> {
   await ensureSchema();
   const { rows } = await getPool().query(
-    `SELECT * FROM entries WHERE id = $1 AND type IN ${FOOD_TYPES};`,
-    [id]
+    `SELECT * FROM entries WHERE id = $1 AND type = ANY($2::text[]);`,
+    [id, ENTRY_TYPES]
   );
   return rows.length ? toEntry(rows[0]) : null;
 }
 
-export async function getBucketItems(): Promise<BucketItem[]> {
+// The domain is optional because /add?bucket= has to look an item up before
+// it knows which half of the book that item belongs to.
+export async function getBucketItems(domain?: Domain): Promise<BucketItem[]> {
   await ensureSchema();
   const { rows } = await getPool().query(
-    "SELECT * FROM bucket_items ORDER BY (entry_id IS NOT NULL), id ASC;"
+    `SELECT * FROM bucket_items
+      WHERE type = ANY($1::text[])
+      ORDER BY (entry_id IS NOT NULL), id ASC;`,
+    [domain ? typesIn(domain) : ENTRY_TYPES]
   );
   return rows.map(toBucketItem);
 }
@@ -205,8 +231,8 @@ export interface NewEntry {
   city: string;
   placeName: string | null;
   cuisine: string | null;
-  lat: number;
-  lng: number;
+  lat: number | null;
+  lng: number | null;
   photos: string[];
   cook: Person | null;
   bucketItemId: number | null;
@@ -291,8 +317,8 @@ export interface EntryEdit {
   city: string;
   placeName: string | null;
   cuisine: string | null;
-  lat: number;
-  lng: number;
+  lat: number | null;
+  lng: number | null;
   photos: string[];
   cook: Person | null;
 }

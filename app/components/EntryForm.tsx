@@ -4,12 +4,15 @@ import { useCallback, useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 import { createEntryAction, updateEntryAction, type ActionState } from "../actions";
 import {
-  ENTRY_TYPES,
+  DOMAIN_COPY,
+  KINDS,
+  hasCook,
   hasCuisine,
+  hasLocation,
   PEOPLE,
   PERSON_LABELS,
-  TYPE_LABELS,
-  TYPE_STYLE,
+  typesIn,
+  type Domain,
   type Entry,
   type EntryType,
   type Person,
@@ -60,6 +63,7 @@ export default function EntryForm({
   defaultCity,
   defaultCook,
   bucketItemId,
+  domain,
 }: {
   mode?: "create" | "edit";
   entry?: Entry;
@@ -68,8 +72,10 @@ export default function EntryForm({
   defaultCity?: string;
   defaultCook?: Person | null;
   bucketItemId?: number | null;
+  domain: Domain;
 }) {
   const isEdit = mode === "edit" && entry !== undefined;
+  const copy = DOMAIN_COPY[domain];
 
   const [state, formAction] = useFormState<ActionState, FormData>(
     isEdit ? updateEntryAction : createEntryAction,
@@ -78,13 +84,15 @@ export default function EntryForm({
 
   const [author, setAuthor] = useState<Person>("vanessa");
   const [title, setTitle] = useState(entry?.title ?? defaultTitle ?? "");
-  const [type, setType] = useState<EntryType>(entry?.type ?? defaultType ?? "restaurant");
+  const [type, setType] = useState<EntryType>(
+    entry?.type ?? defaultType ?? copy.defaultKind
+  );
   const [cook, setCook] = useState<Person>(entry?.cook ?? defaultCook ?? "tudor");
   const [date, setDate] = useState(
     () => entry?.date ?? new Date().toISOString().slice(0, 10)
   );
   const [loc, setLoc] = useState<PickedLocation | null>(
-    entry
+    entry && hasLocation(entry)
       ? {
           lat: entry.lat,
           lng: entry.lng,
@@ -115,7 +123,7 @@ export default function EntryForm({
       <input type="hidden" name="photos" value={JSON.stringify(photos)} />
       <input type="hidden" name="type" value={type} />
       {bucketItemId ? <input type="hidden" name="bucketItemId" value={bucketItemId} /> : null}
-      {type === "cooking" && <input type="hidden" name="cook" value={cook} />}
+      {hasCook(type) && <input type="hidden" name="cook" value={cook} />}
 
       {state.error && (
         <p className="font-body text-sm text-danger border border-danger/40 bg-danger/5 rounded-sm px-3 py-2">
@@ -126,19 +134,22 @@ export default function EntryForm({
       <div>
         <p className="field-label mb-2">What kind</p>
         <div className="grid grid-cols-3 gap-2">
-          {ENTRY_TYPES.map((t) => (
+          {/* Only this half's kinds: retyping a restaurant as bouldering
+              would move the entry to the other side of the book, and the
+              server rejects it anyway. */}
+          {typesIn(domain).map((t) => (
             <Choice key={t} active={type === t} onClick={() => setType(t)}>
               <span
                 className="inline-block w-1.5 h-1.5 rounded-full mr-1.5 align-middle"
-                style={{ backgroundColor: TYPE_STYLE[t].hex }}
+                style={{ backgroundColor: KINDS[t].hex }}
               />
-              {TYPE_LABELS[t]}
+              {KINDS[t].label}
             </Choice>
           ))}
         </div>
       </div>
 
-      {type === "cooking" && (
+      {hasCook(type) && (
         <div>
           <p className="field-label mb-2">Who cooked</p>
           <div className="grid grid-cols-2 gap-2">
@@ -195,7 +206,7 @@ export default function EntryForm({
       </div>
 
       <div>
-        <p className="field-label mb-1.5">Where</p>
+        <p className="field-label mb-1.5">Where — optional</p>
         <LocationPicker value={loc} onChange={setLoc} />
         <label className="block mt-2">
           <span className="field-label">City</span>

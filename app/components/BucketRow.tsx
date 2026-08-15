@@ -4,12 +4,14 @@ import Link from "next/link";
 import { useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 import {
-  ENTRY_TYPES,
+  DOMAIN_COPY,
+  KINDS,
   PEOPLE,
   PERSON_LABELS,
-  TYPE_LABELS,
-  TYPE_STYLE,
+  hasCook,
+  typesIn,
   type BucketItem,
+  type Domain,
   type EntryType,
 } from "@/lib/types";
 import {
@@ -27,7 +29,13 @@ function SaveButton() {
   );
 }
 
-export default function BucketRow({ item }: { item: BucketItem }) {
+export default function BucketRow({
+  item,
+  domain,
+}: {
+  item: BucketItem;
+  domain: Domain;
+}) {
   const [state, formAction] = useFormState<ActionState, FormData>(updateBucketItemAction, {});
   const [editing, setEditing] = useState(false);
   const [type, setType] = useState<EntryType>(item.type);
@@ -61,7 +69,7 @@ export default function BucketRow({ item }: { item: BucketItem }) {
           </div>
 
           <div className="flex flex-wrap items-center gap-1.5 mt-2.5">
-            {ENTRY_TYPES.map((t) => (
+            {typesIn(domain).map((t) => (
               <button
                 key={t}
                 type="button"
@@ -75,13 +83,13 @@ export default function BucketRow({ item }: { item: BucketItem }) {
               >
                 <span
                   className="inline-block w-1.5 h-1.5 rounded-full mr-1.5 align-middle"
-                  style={{ backgroundColor: TYPE_STYLE[t].hex }}
+                  style={{ backgroundColor: KINDS[t].hex }}
                 />
-                {TYPE_LABELS[t]}
+                {KINDS[t].label}
               </button>
             ))}
 
-            {type === "cooking" && (
+            {hasCook(type) && (
               <select
                 name="cook"
                 defaultValue={item.cook ?? "tudor"}
@@ -121,8 +129,12 @@ export default function BucketRow({ item }: { item: BucketItem }) {
 
   return (
     <li className="flex items-center gap-3 border border-line bg-card rounded-sm px-3.5 py-2.5">
+      {/* Inline rather than a border-<kind> class: those are composed from
+          the registry, which Tailwind's scanner can't see, so they never
+          made it into the stylesheet. */}
       <span
-        className={`w-3.5 h-3.5 rounded-full border ${TYPE_STYLE[item.type].border} shrink-0 opacity-60`}
+        className="w-3.5 h-3.5 rounded-full border shrink-0 opacity-60"
+        style={{ borderColor: KINDS[item.type].hex }}
       />
 
       <div className="min-w-0 flex-1">
@@ -137,7 +149,7 @@ export default function BucketRow({ item }: { item: BucketItem }) {
         href={`/add?bucket=${item.id}`}
         className="font-mono text-[10px] tracking-[0.14em] uppercase text-muted hover:text-ink border-b border-dashed border-line shrink-0"
       >
-        We went
+        {DOMAIN_COPY[domain].didIt}
       </Link>
 
       {/* Always visible: these used to appear on hover only, which put them

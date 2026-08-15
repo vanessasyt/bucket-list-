@@ -1,28 +1,61 @@
-# Food Diary
+# Our Diary
 
-Every café, restaurant and home-cooked meal, on a map, with what each of us
-thought of it. Cambridge now, London later, anywhere else after that.
+Every café, restaurant and home-cooked meal, and everything else we did — on a
+map, with what each of us thought of it. Cambridge now, London later, anywhere
+else after that.
+
+## Two halves, one book
+
+The diary has a food half and an activity half. They're the same app with a
+different set of kinds: same map, same wishlist, same two-person reviews. A tab
+tucked against the right edge of the screen flips between them.
+
+| | Food | Activities |
+|---|---|---|
+| Map | `/` | `/activities` |
+| Wishlist | `/list` | `/activities/list` |
+| Kinds | cafés, restaurants, home cooked | punting, bouldering, pottery, walks, days out |
+| Cuisine field | yes | no |
+
+Food keeps the root so nothing bookmarked breaks. `/entry/[id]` serves both
+halves — an entry's kind is what says which half it belongs to, and the nav
+and back links follow from that.
 
 ## How it works
 
-- **Map** (`/`) — the homepage. Every place we've eaten is a pin, coloured by
-  kind. Zoomed out you get one marker per city with a count; zoom past level 9
-  and the individual places separate. The rail down the left switches between
-  everywhere, cafés, restaurants and home-cooked. The strip along the bottom
-  is the same set as cards — click either a pin or a card and its detail card
-  opens with the cover photo and both our scores.
+- **Map** — the homepage of each half. Everything with a location is a pin,
+  coloured by score with the kind as the glyph inside. Zoomed out you get one
+  marker per city with a count; zoom past level 9 and they separate. The bar
+  along the bottom filters by kind. Clicking a pin opens a card with the cover
+  photo and both our scores. **Entries without a location don't appear here** —
+  the panel top-left says how many are missing, and they're all in the list.
 - **Entry** (`/entry/[id]`) — the whole thing: photos, both ratings out of 10
   and both write-ups side by side. Either half can be written or edited at any
-  time. **Edit entry** goes to `/entry/[id]/edit` for the place itself — name,
-  kind, date, location, photos — and holds the delete button.
-- **Add** (`/add`) — a new place: what, when, where (search or click the map),
+  time. **Edit entry** goes to `/entry/[id]/edit` — name, kind, date, location,
+  photos — and holds the delete button.
+- **Add** (`/add`, or `/add?domain=activity`) — what, when, optionally where,
   photos, and a first verdict from whichever of us is writing.
-- **Want to try** (`/list`) — the wishlist. Cafés, restaurants and dishes we
-  haven't got to yet, grouped by kind. "We went" carries the item across to
-  `/add` prefilled, and it moves to the *Been* section afterwards.
+- **Wishlist** — things we haven't got to yet, grouped by kind. "We went" /
+  "We did it" carries the item across to `/add` prefilled, and it moves to the
+  *Been* / *Done* section afterwards.
 
-Three kinds of place, each in its own colour: cafés olive, restaurants
-terracotta, home-cooked sand.
+### Adding a new kind
+
+Everything about a kind — which half it's in, its labels, its colour, its map
+icon, whether it has a cuisine field — lives in one entry in the `KINDS`
+registry in `lib/types.ts`. Add an object there and the union type, the
+filters, the wishlist groups and the pins all follow. The only other edit is
+the matching colour token in `tailwind.config.ts`.
+
+Do **not** name a kind `activity` — a much older version of this app wrote rows
+with that type, and they're deliberately invisible because no kind claims it.
+
+### Location is optional
+
+An evening class or a meal cooked at home doesn't belong on a map, so `lat` and
+`lng` are nullable. Entries without them appear in the timeline and the
+wishlist but never on the map, and the location picker has a **Clear** button
+for taking a location back off.
 
 ## There are no passwords
 
@@ -49,17 +82,30 @@ npm install
    Settings → Environment Variables, with Production ticked. Some Postgres
    integrations name it something else (e.g. `STORAGE_2_DATABASE_URL`) — if
    so, copy its value into a new variable named `DATABASE_URL`.
-3. Deploy. The tables are created automatically on first use.
+3. **Storage tab → add a Blob store.** Connect it to the project, the same
+   way as the database. This provides `BLOB_READ_WRITE_TOKEN`. Without it
+   every photo upload fails; the rest of the app works fine.
+4. Deploy. The tables are created automatically on first use.
 
-Photos are stored in the database and served from `/api/photo/[id]`, so
-there is no blob store or image host to set up. The browser shrinks each
-photo to 1600px on its longest edge before uploading, which keeps a
-typical photo in the low hundreds of kilobytes.
+Note that both storage tokens are injected **at build time**. Connecting a
+store does not rebuild anything, so a deployment that was already running
+when you connected it never receives the variable — you have to redeploy
+before it takes effect. If uploads fail with a blob-token message, check
+Settings → Environment Variables for `BLOB_READ_WRITE_TOKEN` first, then
+check that the current production deployment is newer than it.
+
+Photos go to the Blob store and the entry keeps the public URL it returns.
+Photos added before that change are still rows in the `photos` table with
+`/api/photo/[id]` URLs, and that route stays in place so they keep loading —
+the two kinds of URL sit side by side. The browser shrinks each photo to
+1600px on its longest edge before uploading, which keeps a typical photo in
+the low hundreds of kilobytes.
 
 ### Loading the starting wishlist
 
-`data/seed-bucket.json` holds twelve places and dishes to start with. To load
-them:
+`data/seed-bucket.json` holds seventeen things to start with — twelve places
+and dishes, plus five activities. Each lands on its own half's wishlist
+according to its `type`. To load them:
 
 ```bash
 npx vercel link
@@ -79,25 +125,33 @@ Safe to re-run: items are matched on title and city, so nothing duplicates.
 ### Running it locally
 
 `npm run dev`, with the same `.env.local`. Without a `DATABASE_URL` the app
-compiles fine but every page throws when it tries to query.
+compiles fine but every page throws when it tries to query. Without a
+`BLOB_READ_WRITE_TOKEN` everything works except adding photos, which fails
+with a message saying the token is missing — uploads go to the real Blob
+store even in development, so there is no local-only fallback.
 
 ## Project structure
 
 ```
 app/
-  page.tsx                  Map — the homepage
-  add/page.tsx              Add a place
-  entry/[id]/page.tsx       One place, both write-ups
-  entry/[id]/edit/page.tsx  Edit the place, or delete it
+  page.tsx                  Food map — the homepage
+  activities/page.tsx       Activity map
   list/page.tsx             Want to try
+  activities/list/page.tsx  Want to do
+  add/page.tsx              Add an entry to either half
+  entry/[id]/page.tsx       One entry, both write-ups
+  entry/[id]/edit/page.tsx  Edit it, or delete it
   actions.ts                All server actions
   components/
-    Nav, MapView, CategoryRail, Pin, PlaceCard, PlaceDetail
+    DiaryMap, WishlistPage  One half of the book, either one
+    BookFlip                The tab that turns the page
+    Nav, MapView, CategoryBar, Pin, PlaceDetail, Timeline
     EntryForm, ReviewForm, WhoPicker, DeleteEntry
-    LocationPicker, PhotoUploader, AddPhotos, AddBucketForm
+    LocationPicker, PhotoUploader, AddPhotos
+    AddBucketForm, BucketRow
 lib/
   db.ts                     Postgres queries
-  types.ts                  Shared types, labels, colours
+  types.ts                  KINDS registry, shared types, colours
 scripts/seed.mjs            Loads the starting wishlist
 data/seed-bucket.json       The twelve starting items
 ```

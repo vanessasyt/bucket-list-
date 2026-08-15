@@ -11,47 +11,189 @@ export function isPerson(value: unknown): value is Person {
   return value === "vanessa" || value === "tudor";
 }
 
-// The three kinds of place this diary records. Nothing else belongs on the map.
-export type EntryType = "cafe" | "restaurant" | "cooking";
+// The diary has two halves you flip between: places we ate, and things we
+// did. A kind belongs to exactly one of them, and that's the only thing
+// separating the two — there is no domain column in the database, because
+// the kind already answers the question.
+export type Domain = "food" | "activity";
 
-export const ENTRY_TYPES: EntryType[] = ["cafe", "restaurant", "cooking"];
+export const DOMAINS: Domain[] = ["food", "activity"];
 
-export const TYPE_LABELS: Record<EntryType, string> = {
-  cafe: "Cafés",
-  restaurant: "Restaurants",
-  cooking: "Home cooked",
-};
+export function isDomain(value: unknown): value is Domain {
+  return value === "food" || value === "activity";
+}
 
-// Singular form, for when one place is being described rather than a group.
-export const TYPE_LABELS_ONE: Record<EntryType, string> = {
-  cafe: "Café",
-  restaurant: "Restaurant",
-  cooking: "Home cooked",
-};
+interface KindDef {
+  domain: Domain;
+  label: string; // plural — filter bars, wishlist headings
+  labelOne: string; // singular — one entry being described
+  // Must stay in step with the Tailwind token of the same name. The hex is
+  // the one that actually renders: category colour reaches Leaflet through
+  // HTML strings, so it can't be a class.
+  hex: string;
+  icon: string; // 24×24 stroke path data, fill none
+  cuisine?: true; // shows the free-text cuisine field
+  cook?: true; // asks which of us did it
+}
+
+// Every kind the diary knows about, in the order they appear in the filter
+// bar and the wishlist. ADDING A KIND IS ONE ENTRY HERE — the union type,
+// the filters, the labels, the colours, the icons and the domain split are
+// all derived below. The only other edit is the matching Tailwind token.
+export const KINDS = {
+  // Food — places we ate, and things we cooked.
+  cafe: {
+    domain: "food",
+    label: "Cafés",
+    labelOne: "Café",
+    hex: "#2FA37A",
+    cuisine: true,
+    icon: "M4 9h12v6a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V9ZM16 10h2.5a2.5 2.5 0 0 1 0 5H16M7 3v2M11 3v2",
+  },
+  restaurant: {
+    domain: "food",
+    label: "Restaurants",
+    labelOne: "Restaurant",
+    hex: "#C2455E",
+    cuisine: true,
+    icon: "M6 3v8a2 2 0 0 0 4 0V3M8 11v10M17 3c-1.5 1.5-2 3.5-2 6s.5 3 2 3 2-.5 2-3-.5-4.5-2-6Zm0 9v9",
+  },
+  cooking: {
+    domain: "food",
+    label: "Home cooked",
+    labelOne: "Home cooked",
+    hex: "#8259A8",
+    cook: true,
+    icon: "M4 10h16v5a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4v-5ZM2 10h20M9 6c0-1 1-1.5 1-2.5M13 6c0-1 1-1.5 1-2.5",
+  },
+
+  // Activities — things we did. No cuisine: an afternoon's bouldering isn't
+  // a kind of food, and the dish-naming logic doesn't apply.
+  punting: {
+    domain: "activity",
+    label: "Punting",
+    labelOne: "Punting",
+    hex: "#2C6E9B",
+    icon: "M3 19c1.5 1.2 3 1.2 4.5 0s3-1.2 4.5 0 3 1.2 4.5 0M4.5 12h12l-2 4H6.5l-2-4ZM18 4 14.5 16",
+  },
+  bouldering: {
+    domain: "activity",
+    label: "Bouldering",
+    labelOne: "Bouldering",
+    hex: "#C4703A",
+    icon: "M3 20 9 5l4.5 6.5L17 8l4 12H3ZM9.5 14h.01M13.5 17h.01",
+  },
+  pottery: {
+    domain: "activity",
+    label: "Pottery",
+    labelOne: "Pottery",
+    hex: "#9B4C7E",
+    icon: "M9 3h6M10 3c0 2.2-3 3.4-3 7.2A5 5 0 0 0 12 15.4a5 5 0 0 0 5-5.2C17 6.4 14 5.2 14 3M6.5 20h11",
+  },
+  walk: {
+    domain: "activity",
+    label: "Walks",
+    labelOne: "Walk",
+    hex: "#5F8C3F",
+    icon: "M14.5 4.6a1.6 1.6 0 1 1-3.2 0 1.6 1.6 0 0 1 3.2 0M12.6 9.2 10 12.2l2.6 2.4.7 5.2M12.6 9.2l3.5 1.7 1.1 3.1M13.3 14.6 9.6 20M10 12.2 6.8 13",
+  },
+  outing: {
+    domain: "activity",
+    label: "Days out",
+    labelOne: "Day out",
+    hex: "#6455A8",
+    icon: "m12 3.6 2.6 5.4 5.9.8-4.3 4.1 1 5.9-5.2-2.8-5.2 2.8 1-5.9L3.5 9.8l5.9-.8L12 3.6Z",
+  },
+} as const satisfies Record<string, KindDef>;
+
+export type EntryType = keyof typeof KINDS;
+
+export const ENTRY_TYPES = Object.keys(KINDS) as EntryType[];
 
 export function isEntryType(value: unknown): value is EntryType {
-  return value === "cafe" || value === "restaurant" || value === "cooking";
+  return typeof value === "string" && value in KINDS;
 }
 
-// Where you eat has a cuisine; what you cook is already named by the dish.
+export function domainOf(type: EntryType): Domain {
+  return KINDS[type].domain;
+}
+
+export function typesIn(domain: Domain): EntryType[] {
+  return ENTRY_TYPES.filter((t) => KINDS[t].domain === domain);
+}
+
+// `as const satisfies` keeps the keys literal — which is what makes
+// EntryType a real union — but it also narrows each value to its own exact
+// shape, so the optional flags aren't visible on the union. Reading through
+// KindDef puts them back.
+function def(type: EntryType): KindDef {
+  return KINDS[type];
+}
+
+// Where you eat has a cuisine; what you cook is already named by the dish,
+// and an activity isn't a cuisine at all.
 export function hasCuisine(type: EntryType): boolean {
-  return type === "cafe" || type === "restaurant";
+  return def(type).cuisine === true;
 }
 
-// Category colour: which kind of place this is. The hex must stay in step
-// with the Tailwind tokens of the same names, since pins use the hex and
-// list dots use the class.
-export const TYPE_STYLE: Record<EntryType, { text: string; border: string; bg: string; hex: string }> =
+export function hasCook(type: EntryType): boolean {
+  return def(type).cook === true;
+}
+
+// Everything the two halves of the book say differently, in one table, so
+// that one component can render either side.
+export const DOMAIN_COPY: Record<
+  Domain,
   {
-    cafe: { text: "text-cafe", border: "border-cafe", bg: "bg-cafe", hex: "#2FA37A" },
-    restaurant: {
-      text: "text-restaurant",
-      border: "border-restaurant",
-      bg: "bg-restaurant",
-      hex: "#C2455E",
-    },
-    cooking: { text: "text-cooking", border: "border-cooking", bg: "bg-cooking", hex: "#8259A8" },
-  };
+    name: string; // the flip tab
+    wordmark: string;
+    home: string;
+    list: string;
+    addHref: string;
+    defaultKind: EntryType; // what a blank form starts on
+    unit: [one: string, many: string];
+    allLabel: string; // the "everything" filter
+    listTitle: string;
+    didIt: string; // the wishlist "we went" link
+    addTitle: string;
+    addCta: string;
+    emptyMap: string;
+    emptyList: string;
+  }
+> = {
+  food: {
+    name: "Food",
+    wordmark: "Food Diary",
+    home: "/",
+    list: "/list",
+    addHref: "/add",
+    defaultKind: "restaurant",
+    unit: ["place", "places"],
+    allLabel: "Everywhere",
+    listTitle: "Want to try",
+    didIt: "We went",
+    addTitle: "Add a place",
+    addCta: "Add a place",
+    emptyMap: "No places yet",
+    emptyList: "Nothing on the list yet",
+  },
+  activity: {
+    name: "Activities",
+    wordmark: "Things We Did",
+    home: "/activities",
+    list: "/activities/list",
+    addHref: "/add?domain=activity",
+    defaultKind: "punting",
+    unit: ["thing", "things"],
+    allLabel: "Everything",
+    listTitle: "Want to do",
+    didIt: "We did it",
+    addTitle: "Add an outing",
+    addCta: "Add an outing",
+    emptyMap: "Nothing on the map yet",
+    emptyList: "Nothing on the list yet",
+  },
+};
 
 // Rating colour: how good it was. Separate from the category colours so a
 // pin can say both things at once.
@@ -91,14 +233,26 @@ export interface Entry {
   // the map, where it's the only clue to a place before you click it.
   // Cafés and restaurants only; a home-cooked dish names itself.
   cuisine: string | null;
-  lat: number;
-  lng: number;
+  // Optional: a pottery class or a meal cooked at home is a real entry, it
+  // just isn't a pin. Entries without coordinates show up in the timeline
+  // and the wishlist but never on the map.
+  lat: number | null;
+  lng: number | null;
   photos: string[];
   cook: Person | null;
   vanessaRating: number | null;
   vanessaReview: string | null;
   tudorRating: number | null;
   tudorReview: string | null;
+}
+
+// An entry that has somewhere to be drawn. Narrowing with this once, at the
+// top of the map code, is what keeps every Leaflet call site below it free
+// of null checks.
+export type Located = Entry & { lat: number; lng: number };
+
+export function hasLocation(entry: Entry): entry is Located {
+  return entry.lat !== null && entry.lng !== null;
 }
 
 export function ratingOf(entry: Entry, person: Person): number | null {

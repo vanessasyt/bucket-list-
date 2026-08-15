@@ -38,7 +38,9 @@ export default function LocationPicker({
   onChange,
 }: {
   value: PickedLocation | null;
-  onChange: (loc: PickedLocation) => void;
+  // Nullable because a location can be taken back off an entry, not just
+  // moved. Without that, one stray click on the map is permanent.
+  onChange: (loc: PickedLocation | null) => void;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -83,6 +85,14 @@ export default function LocationPicker({
     } catch {
       /* keep the optimistic value */
     }
+  }
+
+  function clear() {
+    if (markerRef.current) {
+      markerRef.current.remove();
+      markerRef.current = null;
+    }
+    onChangeRef.current(null);
   }
 
   useEffect(() => {
@@ -162,6 +172,11 @@ export default function LocationPicker({
         <button type="button" onClick={runSearch} disabled={searching} className="btn shrink-0">
           {searching ? "…" : "Find"}
         </button>
+        {value && (
+          <button type="button" onClick={clear} className="btn-ghost shrink-0">
+            Clear
+          </button>
+        )}
       </div>
 
       {hits.length > 0 && (
@@ -188,7 +203,7 @@ export default function LocationPicker({
       <p className="font-mono text-[10px] tracking-[0.1em] text-muted mt-1.5">
         {value
           ? `${value.placeName || "Pinned"}${value.city ? ` · ${value.city}` : ""} · ${value.lat.toFixed(4)}, ${value.lng.toFixed(4)}`
-          : "No location set yet"}
+          : "No location — that's fine"}
       </p>
     </div>
   );

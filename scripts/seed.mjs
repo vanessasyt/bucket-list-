@@ -39,8 +39,12 @@ async function main() {
       date TEXT NOT NULL,
       city TEXT NOT NULL,
       place_name TEXT,
-      lat DOUBLE PRECISION NOT NULL,
-      lng DOUBLE PRECISION NOT NULL,
+      cuisine TEXT,
+      -- Nullable, like lib/db.ts: not everything belongs on a map. This
+      -- copy of the DDL only ever runs against an empty database, but it
+      -- drifting from the app's own is how it went stale last time.
+      lat DOUBLE PRECISION,
+      lng DOUBLE PRECISION,
       photos TEXT[] NOT NULL DEFAULT '{}',
       cook TEXT,
       vanessa_rating NUMERIC,

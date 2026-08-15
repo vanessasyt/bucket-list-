@@ -3,11 +3,11 @@
 import Link from "next/link";
 import { useState } from "react";
 import {
+  KINDS,
   PEOPLE,
   PERSON_LABELS,
-  TYPE_LABELS_ONE,
-  TYPE_STYLE,
   formatRating,
+  hasLocation,
   ratingColour,
   ratingOf,
   type Entry,
@@ -27,7 +27,7 @@ export default function PlaceDetail({
   entry: Entry;
   onClose: () => void;
 }) {
-  const style = TYPE_STYLE[entry.type];
+  const style = KINDS[entry.type];
   const [shown, setShown] = useState(0);
   const photos = entry.photos;
   const cover = photos[shown];
@@ -47,7 +47,7 @@ export default function PlaceDetail({
               className="font-mono text-[9px] tracking-[0.2em] uppercase"
               style={{ color: style.hex }}
             >
-              {TYPE_LABELS_ONE[entry.type]}
+              {style.labelOne}
             </span>
           </div>
         )}
@@ -89,7 +89,7 @@ export default function PlaceDetail({
 
       <div className="p-3.5">
         <p className="font-mono text-[9px] tracking-[0.2em] uppercase" style={{ color: style.hex }}>
-          {entry.cuisine || TYPE_LABELS_ONE[entry.type]}
+          {entry.cuisine || style.labelOne}
           {entry.cook && ` · ${PERSON_LABELS[entry.cook]} cooked`}
         </p>
         <h2 className="font-display text-xl text-ink leading-tight mt-1">{entry.title}</h2>
@@ -99,6 +99,9 @@ export default function PlaceDetail({
         </p>
         <p className="font-mono text-[9px] tracking-[0.12em] uppercase text-muted mt-1">
           {shortDate(entry.date)}
+          {/* The card can be opened from the list as well as from a pin, so
+              say when there is no pin to have come from. */}
+          {!hasLocation(entry) && " · Not on the map"}
         </p>
 
         <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-line">

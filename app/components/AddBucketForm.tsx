@@ -4,11 +4,13 @@ import { useRef, useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 import { addBucketItemAction, type ActionState } from "../actions";
 import {
-  ENTRY_TYPES,
+  DOMAIN_COPY,
+  KINDS,
   PEOPLE,
   PERSON_LABELS,
-  TYPE_LABELS,
-  TYPE_STYLE,
+  hasCook,
+  typesIn,
+  type Domain,
   type EntryType,
 } from "@/lib/types";
 
@@ -21,9 +23,9 @@ function SubmitButton() {
   );
 }
 
-export default function AddBucketForm() {
+export default function AddBucketForm({ domain }: { domain: Domain }) {
   const [state, formAction] = useFormState<ActionState, FormData>(addBucketItemAction, {});
-  const [type, setType] = useState<EntryType>("restaurant");
+  const [type, setType] = useState<EntryType>(DOMAIN_COPY[domain].defaultKind);
   const formRef = useRef<HTMLFormElement>(null);
 
   return (
@@ -35,12 +37,18 @@ export default function AddBucketForm() {
       }}
       className="panel p-3.5"
     >
-      <p className="field-label mb-2">Add somewhere to try</p>
+      <p className="field-label mb-2">
+        {domain === "food" ? "Add somewhere to try" : "Add something to do"}
+      </p>
 
       <div className="flex flex-col sm:flex-row gap-2">
         <input
           name="title"
-          placeholder="A café, a restaurant, a dish to cook…"
+          placeholder={
+            domain === "food"
+              ? "A café, a restaurant, a dish to cook…"
+              : "Punting, a climb, a pottery class…"
+          }
           className="input flex-1"
           required
         />
@@ -54,7 +62,7 @@ export default function AddBucketForm() {
       </div>
 
       <div className="flex flex-wrap items-center gap-1.5 mt-2.5">
-        {ENTRY_TYPES.map((t) => (
+        {typesIn(domain).map((t) => (
           <button
             key={t}
             type="button"
@@ -68,14 +76,14 @@ export default function AddBucketForm() {
           >
             <span
               className="inline-block w-1.5 h-1.5 rounded-full mr-1.5 align-middle"
-              style={{ backgroundColor: TYPE_STYLE[t].hex }}
+              style={{ backgroundColor: KINDS[t].hex }}
             />
-            {TYPE_LABELS[t]}
+            {KINDS[t].label}
           </button>
         ))}
         <input type="hidden" name="type" value={type} />
 
-        {type === "cooking" && (
+        {hasCook(type) && (
           <select name="cook" className="input !w-auto !py-1 font-mono text-[11px] ml-1">
             {PEOPLE.map((p) => (
               <option key={p} value={p}>

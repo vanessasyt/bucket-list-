@@ -1,5 +1,5 @@
 import {
-  TYPE_STYLE,
+  KINDS,
   avgRating,
   formatRating,
   ratingColour,
@@ -31,7 +31,7 @@ export function pinHtml(entry: Entry, selected: boolean): string {
 
   // Rated pins are solid in their band colour with white contents. Unrated
   // ones are hollow, so an unscored place never looks like a bad one.
-  const fg = rated ? "#FFFFFF" : TYPE_STYLE[entry.type].hex;
+  const fg = rated ? "#FFFFFF" : KINDS[entry.type].hex;
   const border = rated ? "#FFFFFF" : "#DED7C8";
   const borderStyle = rated ? "solid" : "dashed";
   const label = rated ? formatRating(avg) : "–";

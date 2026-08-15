@@ -8,12 +8,22 @@ import {
   createEntry,
   deleteBucketItem,
   deleteEntry,
+  getEntry,
   updateBucketItem,
   saveReview,
   addPhotos,
   updateEntry,
 } from "@/lib/db";
-import { hasCuisine, isEntryType, isPerson, type EntryType, type Person } from "@/lib/types";
+import {
+  DOMAIN_COPY,
+  domainOf,
+  hasCook,
+  hasCuisine,
+  isEntryType,
+  isPerson,
+  type EntryType,
+  type Person,
+} from "@/lib/types";
 
 export interface ActionState {
   error?: string;
@@ -28,6 +38,24 @@ export interface ActionState {
 function authorFrom(formData: FormData): Person | null {
   const raw = formData.get("author");
   return isPerson(raw) ? raw : null;
+}
+
+// Both halves of the book get revalidated by kind rather than by hardcoded
+// path, so an activity never busts the food map's cache and vice versa.
+function revalidateDomain(type: EntryType) {
+  const copy = DOMAIN_COPY[domainOf(type)];
+  revalidatePath(copy.home);
+  revalidatePath(copy.list);
+}
+
+// A blank coordinate field means "no location", not zero. Reading it with a
+// bare Number() is what used to file entries at 0°N 0°E, since Number("")
+// is 0 and 0 passes an isFinite check.
+function coordFrom(formData: FormData, name: string): number | null {
+  const raw = String(formData.get(name) ?? "").trim();
+  if (!raw) return null;
+  const n = Number(raw);
+  return Number.isFinite(n) ? n : null;
 }
 
 function photosFrom(formData: FormData): string[] {
@@ -47,8 +75,8 @@ interface PlaceFields {
   city: string;
   placeName: string | null;
   cuisine: string | null;
-  lat: number;
-  lng: number;
+  lat: number | null;
+  lng: number | null;
   photos: string[];
   cook: Person | null;
 }
@@ -60,25 +88,29 @@ function placeFrom(formData: FormData): PlaceFields | { error: string } {
   if (!title) return { error: "Give it a name." };
 
   const type = String(formData.get("type") || "");
-  if (!isEntryType(type)) return { error: "Pick café, restaurant or home cooked." };
+  if (!isEntryType(type)) return { error: "Pick what kind of thing this was." };
 
   const date = String(formData.get("date") || "");
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return { error: "Pick a date." };
 
-  const lat = Number(formData.get("lat"));
-  const lng = Number(formData.get("lng"));
-  if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
-    return { error: "Set the location by searching or clicking the map." };
-  }
+  // Location is optional. Half a pair is no location at all — a lone
+  // latitude can't be drawn and shouldn't be stored.
+  const latValue = coordFrom(formData, "lat");
+  const lngValue = coordFrom(formData, "lng");
+  const [lat, lng] =
+    latValue === null || lngValue === null ? [null, null] : [latValue, lngValue];
 
   const cookRaw = formData.get("cook");
-  const cook: Person | null = type === "cooking" && isPerson(cookRaw) ? cookRaw : null;
+  const cook: Person | null = hasCook(type) && isPerson(cookRaw) ? cookRaw : null;
 
   return {
     title,
     type,
     date,
-    city: String(formData.get("city") || "").trim() || "Unknown",
+    // Blank rather than "Unknown": an entry with no location has no city
+    // either, and "Unknown" reading under every home-cooked meal is worse
+    // than nothing at all.
+    city: String(formData.get("city") || "").trim(),
     placeName: String(formData.get("placeName") || "").trim() || null,
     // Dropped for home-cooked, so switching the kind can't leave a stale
     // cuisine behind on the entry.
@@ -126,6 +158,18 @@ export async function uploadPhoto(formData: FormData): Promise<UploadResult> {
     return { ok: false, error: "That photo is too large even after shrinking." };
   }
 
+  // A connected Blob store injects this at build time, so an absent token
+  // means either no store is connected or the store was connected after
+  // this deployment was built. Checking up front separates that from a
+  // token that exists but is rejected — previously both said the same
+  // thing, which made a redeploy look like it hadn't helped.
+  if (!process.env.BLOB_READ_WRITE_TOKEN) {
+    return {
+      ok: false,
+      error: "No blob token in this deployment — connect a Blob store, then redeploy.",
+    };
+  }
+
   try {
     const blob = await put(`photos/${file.name || "photo.jpg"}`, file, {
       access: "public",
@@ -136,12 +180,14 @@ export async function uploadPhoto(formData: FormData): Promise<UploadResult> {
     return { ok: true, url: blob.url };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    // The usual cause is no Blob store connected, which surfaces as a
-    // missing-token error and is otherwise cryptic in the UI.
+    // The catch used to swallow the error entirely, so a rejected token, a
+    // deleted store and an over-quota one left nothing in the logs to tell
+    // them apart. The real error now reaches the runtime logs.
+    console.error("Blob upload failed:", err);
     if (/token/i.test(message)) {
       return {
         ok: false,
-        error: "Blob storage isn't set up — add a Blob store in Vercel and redeploy.",
+        error: "Blob storage rejected the token — check the store is still connected.",
       };
     }
     return { ok: false, error: message.slice(0, 140) };
@@ -157,7 +203,9 @@ export async function addPhotosAction(
 
   const urls = photosFrom(formData);
   if (urls.length) await addPhotos(entryId, urls);
-  revalidatePath("/");
+
+  const entry = await getEntry(entryId);
+  if (entry) revalidateDomain(entry.type);
   revalidatePath(`/entry/${entryId}`);
   return {};
 }
@@ -185,8 +233,7 @@ export async function createEntryAction(
     review: String(formData.get("review") || "").trim() || null,
   });
 
-  revalidatePath("/");
-  revalidatePath("/list");
+  revalidateDomain(entry.type);
   redirect(`/entry/${entry.id}`);
 }
 
@@ -200,10 +247,19 @@ export async function updateEntryAction(
   const place = placeFrom(formData);
   if ("error" in place) return place;
 
+  // The form only ever offers kinds from the entry's own half, but there is
+  // no session here to lean on. Retyping a restaurant as bouldering would
+  // move the entry out from under whichever list reached it and strand any
+  // wishlist item pointing at it, so refuse it at the boundary.
+  const existing = await getEntry(entryId);
+  if (!existing) return { error: "Missing entry." };
+  if (domainOf(existing.type) !== domainOf(place.type)) {
+    return { error: "An entry can't move between food and activities." };
+  }
+
   await updateEntry(entryId, place);
 
-  revalidatePath("/");
-  revalidatePath("/list");
+  revalidateDomain(place.type);
   revalidatePath(`/entry/${entryId}`);
   redirect(`/entry/${entryId}`);
 }
@@ -212,10 +268,15 @@ export async function deleteEntryAction(formData: FormData) {
   const entryId = Number(formData.get("entryId"));
   if (!Number.isFinite(entryId)) return;
 
+  // Read the type before the row goes, so we know which half to send the
+  // reader back to.
+  const existing = await getEntry(entryId);
+  const copy = DOMAIN_COPY[existing ? domainOf(existing.type) : "food"];
+
   await deleteEntry(entryId);
-  revalidatePath("/");
-  revalidatePath("/list");
-  redirect("/");
+  revalidatePath(copy.home);
+  revalidatePath(copy.list);
+  redirect(copy.home);
 }
 
 export async function saveReviewAction(
@@ -234,7 +295,9 @@ export async function saveReviewAction(
     ratingFrom(formData),
     String(formData.get("review") || "").trim() || null
   );
-  revalidatePath("/");
+
+  const entry = await getEntry(entryId);
+  if (entry) revalidateDomain(entry.type);
   revalidatePath(`/entry/${entryId}`);
   return {};
 }
@@ -246,17 +309,17 @@ export async function addBucketItemAction(
   formData: FormData
 ): Promise<ActionState> {
   const title = String(formData.get("title") || "").trim();
-  if (!title) return { error: "Name the place you want to try." };
+  if (!title) return { error: "Give it a name." };
 
   const type = String(formData.get("type") || "");
-  if (!isEntryType(type)) return { error: "Pick café, restaurant or home cooked." };
+  if (!isEntryType(type)) return { error: "Pick what kind of thing this is." };
 
   const city = String(formData.get("city") || "").trim() || "Cambridge";
   const cookRaw = formData.get("cook");
-  const cook: Person | null = type === "cooking" && isPerson(cookRaw) ? cookRaw : null;
+  const cook: Person | null = hasCook(type) && isPerson(cookRaw) ? cookRaw : null;
 
   await addBucketItem({ title, type, city, cook });
-  revalidatePath("/list");
+  revalidatePath(DOMAIN_COPY[domainOf(type)].list);
   return {};
 }
 
@@ -271,22 +334,25 @@ export async function updateBucketItemAction(
   if (!title) return { error: "Give it a name." };
 
   const type = String(formData.get("type") || "");
-  if (!isEntryType(type)) return { error: "Pick café, restaurant or home cooked." };
+  if (!isEntryType(type)) return { error: "Pick what kind of thing this is." };
 
   const city = String(formData.get("city") || "").trim() || "Cambridge";
   const cookRaw = formData.get("cook");
-  const cook: Person | null = type === "cooking" && isPerson(cookRaw) ? cookRaw : null;
+  const cook: Person | null = hasCook(type) && isPerson(cookRaw) ? cookRaw : null;
 
   try {
     await updateBucketItem(id, { title, type, city, cook });
   } catch (err) {
     if ((err as { code?: string }).code === "23505") {
-      return { error: `${title} is already on the list for ${city}.` };
+      // The unique constraint is on (title, city) alone, so the clash may
+      // be with an item on the other half's list, which the reader can't
+      // see from here. Don't claim to know which list it's on.
+      return { error: `${title} is already on one of the lists for ${city}.` };
     }
     throw err;
   }
 
-  revalidatePath("/list");
+  revalidatePath(DOMAIN_COPY[domainOf(type)].list);
   return {};
 }
 
@@ -294,6 +360,9 @@ export async function deleteBucketItemAction(formData: FormData) {
   const id = Number(formData.get("id"));
   if (Number.isFinite(id)) {
     await deleteBucketItem(id);
-    revalidatePath("/list");
+    // The form doesn't carry the item's kind and the row is gone by now, so
+    // refresh both lists rather than guess which one it was on.
+    revalidatePath(DOMAIN_COPY.food.list);
+    revalidatePath(DOMAIN_COPY.activity.list);
   }
 }
