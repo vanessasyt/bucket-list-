@@ -137,7 +137,7 @@ body {
    brightest thing on screen. Scoped to the tile pane, so pins, circles and
    overlays keep their own colour. */
 .leaflet-tile-pane {
-  filter: saturate(0.28) brightness(1.12) contrast(0.82) sepia(0.18);
+  filter: saturate(0.4) brightness(1.08) contrast(0.88) sepia(0.12);
 }
 
 /* The activity map goes further: it starts as a blank world and gets
