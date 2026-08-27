@@ -130,10 +130,20 @@ body {
   animation: page-turn-from-left 0.44s cubic-bezier(0.22, 0.61, 0.36, 1) both;
 }
 
-/* The activity map starts as a blank world and gets coloured in: the tiles
-   are drained of colour so that the only colour on screen is the ground
-   you've actually covered. Scoped to the tile pane, so pins, circles and
+/* OpenStreetMap's own tiles are far more saturated than the CARTO ones this
+   design was drawn against — orange motorways, hard yellow roads, heavy
+   greens. Drain most of the colour, lift the whites and warm it slightly
+   towards the paper palette, so the basemap sits back and the pins stay the
+   brightest thing on screen. Scoped to the tile pane, so pins, circles and
    overlays keep their own colour. */
+.leaflet-tile-pane {
+  filter: saturate(0.28) brightness(1.12) contrast(0.82) sepia(0.18);
+}
+
+/* The activity map goes further: it starts as a blank world and gets
+   coloured in, so its tiles lose colour entirely and the only colour on
+   screen is the ground you've actually covered. More specific than the rule
+   above, so this filter replaces it rather than compounding it. */
 .map-mono .leaflet-tile-pane {
   filter: grayscale(1) brightness(1.05) contrast(0.92);
 }
