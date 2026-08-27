@@ -14,6 +14,7 @@ import {
   type Entry,
   type Located,
 } from "@/lib/types";
+import { TILE_URL, TILE_ATTRIBUTION, TILE_MAX_ZOOM } from "@/lib/basemap";
 import CategoryBar, { filtersFor, filterLabel, type Filter } from "./CategoryBar";
 import ToDoStrip from "./ToDoStrip";
 import PlaceDetail from "./PlaceDetail";
@@ -154,10 +155,9 @@ export default function MapView({
       });
       mapRef.current = map;
 
-      L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
-        attribution: "&copy; OpenStreetMap &copy; CARTO",
-        subdomains: "abcd",
-        maxZoom: 20,
+      L.tileLayer(TILE_URL, {
+        attribution: TILE_ATTRIBUTION,
+        maxZoom: TILE_MAX_ZOOM,
       }).addTo(map);
 
       layerRef.current = L.layerGroup().addTo(map);

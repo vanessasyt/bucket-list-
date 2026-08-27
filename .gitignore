@@ -10,3 +10,6 @@ next-env.d.ts
 
 # scratch files from debugging
 *.tmp.json
+
+# the Date-Diary project happens to live in this folder; it is its own repo
+/Date-Diary

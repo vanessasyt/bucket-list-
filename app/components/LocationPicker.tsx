@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { TILE_URL, TILE_ATTRIBUTION, TILE_MAX_ZOOM } from "@/lib/basemap";
 
 export interface PickedLocation {
   lat: number;
@@ -108,10 +109,9 @@ export default function LocationPicker({
       );
       mapRef.current = map;
 
-      L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
-        attribution: "&copy; OpenStreetMap &copy; CARTO",
-        subdomains: "abcd",
-        maxZoom: 20,
+      L.tileLayer(TILE_URL, {
+        attribution: TILE_ATTRIBUTION,
+        maxZoom: TILE_MAX_ZOOM,
       }).addTo(map);
 
       if (value) markerRef.current = L.marker([value.lat, value.lng]).addTo(map);
